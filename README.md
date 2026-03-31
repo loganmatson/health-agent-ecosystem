@@ -147,8 +147,11 @@ Each agent is a Claude Code skill — a structured markdown prompt file that def
 
 | Output | Description | Link |
 |---|---|---|
-| Whoop Scorecard | Interactive HTML — recovery trends, intervention rankings, HRV analysis | [View](outputs/whoop/scorecard-mar-26.html) |
-| Meal Plan PWA | 3-tab interactive app — Plan / Cook / Groceries, per-day macro bars | [View](outputs/meals/meal-plan-mar-30.html) |
+| Whoop Scorecard — March | Interactive HTML — recovery trends, intervention rankings, HRV analysis | [Live](https://nuero-agent-logan.netlify.app/) · [Source](outputs/whoop/scorecard-mar-26.html) |
+| Whoop Scorecard — February | Interactive HTML — prior month comparison | [Source](outputs/whoop/scorecard-feb-26.html) |
+| Analyst Brief — March | Full statistical report: multivariate regression, effect sizes, protocol recommendations | [PDF](outputs/whoop/analyst-brief-mar-26.pdf) |
+| Analyst Brief — February | Full statistical report — February baseline | [PDF](outputs/whoop/analyst-brief-feb-26.pdf) |
+| Meal Plan PWA | 3-tab interactive app — Plan / Cook / Groceries, per-day macro bars | [Live](https://meal-plan-mar30-logan.netlify.app/) · [Source](outputs/meals/meal-plan-mar-30.html) |
 | GCal Automation | Screenshot — cook nights + training sessions placed automatically | [View](outputs/screenshots/GCal%20Screenshot.png) |
 | Grocery Email | Auto-generated grocery list sent via GWS CLI | [View](outputs/screenshots/Groceries%20Email.png) |
 | Meal Prep Views | Cooking tab, daily log, groceries tab from the PWA | [View](outputs/screenshots/) |
