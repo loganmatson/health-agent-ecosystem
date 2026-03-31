@@ -16,7 +16,7 @@ This isn't a demo. It runs weekly. The outputs in this repo are real.
 
 ## Why I Built It
 
-I had brain surgery two years ago after eight years of epileptic seizures. I've been seizure-free since, but the risk doesn't disappear — it's managed. Stress, sleep deprivation, overtraining, and poor nutrition are all triggers. I'm also training for a marathon.
+I had brain surgery two years ago after eight years of epileptic seizures. I've been seizure-free since, but the risk doesn't disappear — it's managed. Stress, sleep deprivation, overtraining, and poor nutrition are all triggers. I also will have completed 3 marathons this May, all in the last 6 months.
 
 I built this system because I needed something that could hold all of those variables at once and surface a clear picture of what my week should look like. No app did that. So I built the agents myself.
 
