@@ -1,0 +1,57 @@
+{
+  "last_updated": "2026-03-26T18:00:00",
+  "pipelines": {
+    "optimize_week": {
+      "run_date": "2026-03-26",
+      "week_of": "2026-03-30",
+      "whoop_analyzed": true,
+      "risk_level": "GREEN",
+      "training_sessions": 5,
+      "meal_plan_path": "outputs/meals/meal-plan-mar-30.html",
+      "groceries_sent": true,
+      "note": "Full pipeline run. Whoop Mar 26 analyzed (recovery +6%, HRV 132ms). 23mi long run Mon (PEAK). 5 lift sessions placed. Grocery email sent via GWS."
+    },
+    "gordon_ramsay": {
+      "run_date": "2026-03-26",
+      "week_of": "2026-03-30",
+      "entrees": ["Chicken Breasts", "Chicken Thighs", "Ground Chicken", "Ground Beef", "Pasta"],
+      "avg_protein_g": 169,
+      "meal_plan_path": "outputs/meals/meal-plan-mar-30.html",
+      "note": "Mon PEAK = high-protein meal + complex carbs x1.5. Sat/Sun lower protein (pasta dinners)."
+    },
+    "neurologist_agent": {
+      "run_date": "2026-03-26",
+      "week_of": "2026-03-30",
+      "overall_risk": "GREEN",
+      "forecast": {
+        "2026-03-30": "GREEN",
+        "2026-03-31": "GREEN",
+        "2026-04-01": "GREEN",
+        "2026-04-02": "GREEN",
+        "2026-04-03": "GREEN",
+        "2026-04-04": "GREEN",
+        "2026-04-05": "GREEN"
+      },
+      "overrides_applied": [
+        "Mon dinner = PEAK recovery (high-protein + complex carbs x1.5)",
+        "Sun pre-long-run carb load"
+      ]
+    },
+    "whoop_report": {
+      "run_date": "2026-03-26",
+      "month": "Mar 26",
+      "output_path": "outputs/whoop/scorecard-mar-26.html",
+      "highlights": [
+        "Recovery up +6 points to 57.6% — solid marathon prep baseline",
+        "Electrolytes strongest positive recovery intervention (d=0.64)",
+        "HRV independently predicts recovery after controlling for sleep (partial r=0.80)"
+      ]
+    },
+    "morning_digest": {
+      "run_date": "",
+      "career_topic": "",
+      "cyber_topic": "",
+      "digest_path": ""
+    }
+  }
+}

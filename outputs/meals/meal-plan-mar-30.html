@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MealPrep">
+<title>Meal Plan — Mar 30</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green:  #2a5c45;
+  --green-l:#e8f5ee;
+  --blue:   #1a3a5c;
+  --blue-l: #e8f0f8;
+  --amber:  #8a5200;
+  --amber-l:#fff3e0;
+  --red:    #c0392b;
+  --red-l:  #fdecea;
+  --orange: #d35400;
+  --orange-l:#fff0e0;
+  --gray:   #555e68;
+  --border: #e2e8ef;
+  --bg:     #f5f7fa;
+  --card:   #ffffff;
+  --text:   #1a1f26;
+  --muted:  #8a93a0;
+  --nav-h:  60px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --green-l:#0d2118; --blue-l:#0d1a28; --amber-l:#1f1200; --red-l:#1f0a08; --orange-l:#1f0f00;
+    --border: #2a3040; --bg: #0f1117; --card: #1a1f2e; --text: #e8edf5; --muted: #5a6478;
+  }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom)); }
+.app-header { position: sticky; top: 0; z-index: 50; background: var(--card); border-bottom: 1px solid var(--border); padding: 14px 16px 10px; }
+.app-header h1 { font-family: 'DM Serif Display', serif; font-size: 22px; }
+.app-header p  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.tab-content { display: none; padding: 14px 14px 20px; }
+.tab-content.active { display: block; }
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; height: calc(var(--nav-h) + env(safe-area-inset-bottom)); background: var(--card); border-top: 1px solid var(--border); display: flex; padding-bottom: env(safe-area-inset-bottom); }
+.nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; background: none; border: none; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.3px; transition: color 0.15s; }
+.nav-btn .icon { font-size: 20px; }
+.nav-btn.active { color: var(--green); }
+.week-macros { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 14px; }
+.wm-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 6px; text-align: center; }
+.wm-val { font-size: 18px; font-weight: 700; }
+.wm-lbl { font-size: 10px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.4px; }
+.bfast-pill { background: var(--amber-l); border: 1px solid #e0b060; border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+.bfast-pill .icon { font-size: 22px; }
+.bfast-pill .lbl { font-size: 10px; color: var(--amber); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+.bfast-pill .val  { font-size: 13px; font-weight: 500; margin-top: 2px; }
+.day-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 10px; overflow: hidden; }
+.day-header { display: flex; align-items: flex-start; justify-content: space-between; padding: 11px 14px 9px; border-bottom: 1px solid var(--border); }
+.day-name { font-size: 16px; font-weight: 700; }
+.day-sub  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.strain-badge { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.3px; white-space: nowrap; margin-top: 2px; }
+.PEAK     { background: var(--red-l);    color: var(--red); }
+.HIGH     { background: var(--orange-l); color: var(--orange); }
+.MODERATE { background: var(--blue-l);   color: var(--blue); }
+.LOW      { background: var(--green-l);  color: var(--green); }
+.meals { padding: 4px 14px 10px; }
+.meal-row { display: flex; align-items: flex-start; padding: 9px 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: opacity 0.15s; }
+.meal-row:last-child { border-bottom: none; }
+.meal-row:active { opacity: 0.5; }
+.meal-row.done { opacity: 0.4; }
+.meal-row.done .meal-name { text-decoration: line-through; }
+.meal-icon { font-size: 18px; width: 28px; flex-shrink: 0; margin-top: 1px; }
+.meal-info { flex: 1; min-width: 0; }
+.meal-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; font-weight: 600; }
+.meal-name  { font-size: 13px; font-weight: 600; margin-top: 2px; line-height: 1.3; }
+.meal-macros{ font-size: 11px; color: var(--muted); margin-top: 3px; font-variant-numeric: tabular-nums; }
+.meal-note  { font-size: 11px; color: var(--muted); margin-top: 2px; font-style: italic; }
+.meal-check { font-size: 16px; margin-left: 8px; flex-shrink: 0; margin-top: 2px; }
+.meal-row:not(.done) .meal-check::after { content: '\25CB'; color: var(--border); }
+.meal-row.done      .meal-check::after { content: '\2713'; color: var(--green); font-weight: 700; }
+.badge-inline { display: inline-block; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 8px; margin-left: 5px; vertical-align: middle; letter-spacing: 0.2px; }
+.cook-b  { background: var(--green-l); color: var(--green); border: 1px solid #a0c8b8; }
+.fuel-b  { background: var(--amber-l); color: var(--amber); border: 1px solid #e0b060; }
+.run-b   { background: var(--red-l);   color: var(--red);   border: 1px solid #f5b0a8; }
+.left-b  { background: var(--green-l); color: var(--green); border: 1px solid #a0c8b8; }
+.snack-note { font-size: 11px; color: var(--muted); padding: 6px 14px 8px; border-top: 1px solid var(--border); }
+.macro-bars { padding: 8px 14px 12px; border-top: 1px solid var(--border); }
+.macro-row  { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+.macro-row:last-child { margin-bottom: 0; }
+.macro-lbl { font-size: 10px; font-weight: 600; width: 14px; color: var(--muted); }
+.macro-track { flex: 1; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.macro-fill  { height: 100%; border-radius: 3px; transition: width 0.3s; }
+.fill-p { background: #4caf7d; }
+.fill-c { background: #5b9bd5; }
+.fill-f { background: #e8a020; }
+.macro-val { font-size: 10px; color: var(--muted); width: 42px; text-align: right; font-variant-numeric: tabular-nums; }
+.cook-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 12px; overflow: hidden; }
+.cook-header { padding: 12px 14px 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.cook-title { font-size: 15px; font-weight: 700; }
+.cook-meta  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.cook-day   { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: var(--green-l); color: var(--green); }
+.cook-body  { padding: 12px 14px; font-size: 13px; line-height: 1.65; color: var(--text); }
+.cook-body strong { font-weight: 600; }
+.cook-tip { margin-top: 10px; padding: 8px 12px; background: var(--amber-l); border-radius: 10px; border-left: 3px solid #e0b060; font-size: 12px; color: var(--amber); line-height: 1.5; }
+.cook-tip strong { font-weight: 700; }
+.fridge-banner { background: var(--blue-l); border: 1px solid #8ab0d8; border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; }
+.fridge-banner .title { font-size: 12px; font-weight: 700; color: var(--blue); margin-bottom: 4px; }
+.fridge-banner p { font-size: 12px; line-height: 1.5; }
+.grocery-section { margin-bottom: 16px; }
+.grocery-section h3 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); margin-bottom: 8px; }
+.grocery-list { list-style: none; }
+.grocery-list li { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; display: flex; justify-content: space-between; align-items: baseline; }
+.grocery-list li:last-child { border-bottom: none; }
+.grocery-list li .note { font-size: 11px; color: var(--muted); }
+.chef-pick { background: var(--green-l); border: 1px solid #a0c8b8; border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; }
+.chef-pick .title { font-size: 12px; font-weight: 700; color: var(--green); margin-bottom: 4px; }
+.chef-pick p { font-size: 12px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <h1>Meal Plan</h1>
+  <p>Week of Mar 30 – Apr 5, 2026 · Grocery Run</p>
+</div>
+
+<!-- ══ PLAN TAB ══════════════════════════════════════ -->
+<div class="tab-content active" id="tab-plan">
+
+  <div class="week-macros">
+    <div class="wm-card"><div class="wm-val">~169g</div><div class="wm-lbl">Protein</div></div>
+    <div class="wm-card"><div class="wm-val">~172g</div><div class="wm-lbl">Carbs</div></div>
+    <div class="wm-card"><div class="wm-val">~65g</div><div class="wm-lbl">Fat</div></div>
+    <div class="wm-card"><div class="wm-val">~1,905</div><div class="wm-lbl">Cal/day</div></div>
+  </div>
+
+  <div class="bfast-pill">
+    <span class="icon">🥚</span>
+    <div>
+      <div class="lbl">Breakfast · 6 days egg bake + 1 stovetop</div>
+      <div class="val">Egg Bake — 46g · 3c · 26f · 430 cal · Batch 1 Sun 3/29, Batch 2 Sat 4/4</div>
+    </div>
+  </div>
+
+  <!-- SUN PREP -->
+  <div class="day-card">
+    <div class="day-header">
+      <div><div class="day-name">Sunday (Prep)</div><div class="day-sub">Mar 29 · Grocery run + rice cook</div></div>
+      <span class="strain-badge LOW">PREP</span>
+    </div>
+    <div class="meals">
+      <div class="meal-row" onclick="toggle(this)" data-id="sun0-l">
+        <span class="meal-icon">🍗</span>
+        <div class="meal-info">
+          <div class="meal-label">Lunch</div>
+          <div class="meal-name">Chicken Breasts (carry-in) + Rice<span class="badge-inline left-b">CARRY-IN</span></div>
+          <div class="meal-macros">84p · 45c · 9f · 620 cal</div>
+        </div>
+        <span class="meal-check"></span>
+      </div>
+      <div class="meal-row" onclick="toggle(this)" data-id="sun0-d">
+        <span class="meal-icon">🍗</span>
+        <div class="meal-info">
+          <div class="meal-label">Dinner</div>
+          <div class="meal-name">Chicken Breasts (carry-in) + Rice ×1.5<span class="badge-inline fuel-b">⛽ PRE-23MI</span></div>
+          <div class="meal-macros">84p · 68c · 9f · 720 cal</div>
+          <div class="meal-note">Carb-load for Monday 23mi long run</div>
+        </div>
+        <span class="meal-check"></span>
+      </div>
+    </div>
+    <div class="snack-note">🍎 Fruit snacks — apple + clementine + banana (~235 cal) · 🛒 Grocery run today</div>
+    <div class="macro-bars">
+      <div class="macro-row"><span class="macro-lbl">P</span><div class="macro-track"><div class="macro-fill fill-p" style="width:100%"></div></div><span class="macro-val">216 / 180g</span></div>
+      <div class="macro-row"><span class="macro-lbl">C</span><div class="macro-track"><div class="macro-fill fill-c" style="width:94%"></div></div><span class="macro-val">177 / 200g</span></div>
+      <div class="macro-row"><span class="macro-lbl">F</span><div class="macro-track"><div class="macro-fill fill-f" style="width:68%"></div></div><span class="macro-val">44 / 65g</span></div>
+    </div>
+  </div>
+
+  <!-- MON -->
+  <div class="day-card">
+    <div class="day-header">
+      <div><div class="day-name">Monday</div><div class="day-sub">Mar 30 · 23mi Long Run 🏃</div></div>
+      <span class="strain-badge PEAK">PEAK — 23mi</span>
+    </div>
+    <div class="meals">
+      <div class="meal-row" onclick="toggle(this)" data-id="mon-l">
+        <span class="meal-icon">🍗</span>
+        <div class="meal-info">
+          <div class="meal-label">Lunch</div>
+          <div class="meal-name">Chicken Breasts (carry-in, last) + Rice<span class="badge-inline left-b">LAST</span></div>
+          <div class="meal-macros">84p · 45c · 9f · 620 cal</div>
+        </div>
+        <span class="meal-check"></span>
+      </div>
+      <div class="meal-row" onclick="toggle(this)" data-id="mon-d">
+        <span class="meal-icon">🍗</span>
+        <div class="meal-info">
+          <div class="meal-label">Dinner</div>
+          <div class="meal-name">Chicken Thighs + Potatoes ×1.5<span class="badge-inline cook-b">COOK TONIGHT</span></div>
+          <div class="meal-macros">77p · 81c · 22f · 857 cal</div>
+          <div class="meal-note">Air fryer 70 min · 3.5 lbs → 3 srv · PEAK recovery meal</div>
+        </div>
+        <span class="meal-check"></span>
+      </div>
+    </div>
+    <div class="snack-note">🍎 Fruit snacks (~235 cal) · 💧 Extra hydration + electrolytes post-23mi</div>
+    <div class="macro-bars">
+      <div class="macro-row"><span class="macro-lbl">P</span><div class="macro-track"><div class="macro-fill fill-p" style="width:100%"></div></div><span class="macro-val">209 / 180g</span></div>
+      <div class="macro-row"><span class="macro-lbl">C</span><div class="macro-track"><div class="macro-fill fill-c" style="width:94%"></div></div><span class="macro-val">190 / 200g</span></div>
+      <div class="macro-row"><span class="macro-lbl">F</span><div class="macro-track"><div class="macro-fill fill-f" style="width:88%"></div></div><span class="macro-val">57 / 65g</span></div>
+    </div>
+  </div>
+
+  <!-- TUE -->
+  <div class="day-card">
+    <div class="day-header">
+      <div><div class="day-name">Tuesday</div><div class="day-sub">Mar 31 · Legs</div></div>
+      <span class="strain-badge MODERATE">MODERATE</span>
+    </div>
+    <div class="meals">
+      <div class="meal-row" onclick="toggle(this)" data-id="tue-l">
+        <span class="meal-icon">🍗</span>
+        <div class="meal-info">
+          <div class="meal-label">Lunch</div>
+          <div class="meal-name">Chicken Thighs srv 2 + Potatoes<span class="badge-inline left-b">Leftover · Mon</span></div>
+          <div class="meal-macros">77p · 54c · 22f · 735 cal</div>
+        </div>
+        <span class="meal-check"></span>
+      </div>
+      <div class="meal-row" onclick="toggle(this)" data-id="tue-d">
+        <span class="meal-icon">🐔</span>
+        <div class="meal-info">
+          <div class="meal-label">Dinner</div>
+          <div class="meal-name">Ground Chicken + Rice<span class="badge-inline cook-b">COOK TONIGHT</span></div>
+          <div class="meal-macros">65p · 45c · 20f · 645 cal</div>
+          <div class="meal-note">Stove 15 min · 3 lbs → 4 srv</div>
+        </div>
+        <span class="meal-check"></span>
+      </div>
+    </div>
+    <div class="snack-note">🍎 Fruit snacks (~235 cal)</div>
+    <div class="macro-bars">
+      <div class="macro-row"><span class="macro-lbl">P</span><div class="macro-track"><div class="macro-fill fill-p" style="width:100%"></div></div><span class="macro-val">190 / 180g</span></div>
+      <div class="macro-row"><span class="macro-lbl">C</span><div class="macro-track"><div class="macro-fill fill-c" style="width:82%"></div></div><span class="macro-val">163 / 200g</span></div>
+      <div class="macro-row"><span class="macro-lbl">F</span><div class="macro-track"><div class="macro-fill fill-f" style="width:100%"></div></div><span class="macro-val">68 / 65g</span></div>
+    </div>
+  </div>
+
+  <!-- WED -->
+  <div class="day-card">
+    <div class="day-header">
+      <div><div class="day-name">Wednesday</div><div class="day-sub">Apr 1 · Push + 7.5mi Easy</div></div>
+      <span class="strain-badge HIGH">HIGH</span>
+    </div>
+    <div class="meals">
+      <div class="meal-row" onclick="toggle(this)" data-id="wed-l">
+        <span class="meal-icon">🍗</span>
+        <div class="meal-info">
+          <div class="meal-label">Lunch</div>
+          <div class="meal-name">Chicken Thighs srv 3 (last) + Potatoes<span class="badge-inline left-b">LAST</span></div>
+          <div class="meal-macros">77p · 54c · 22f · 735 cal</div>
+        </div>
+        <span class="meal-check"></span>
+      </div>
+      <div class="meal-row" onclick="toggle(this)" data-id="wed-d">
+        <span class="meal-icon">🐔</span>
+        <div class="meal-info">
+          <div class="meal-label">Dinner</div>
+          <div class="meal-name">Ground Chicken srv 2 + Rice<span class="badge-inline left-b">Leftover · Tue</span></div>
+          <div class="meal-macros">65p · 45c · 20f · 645 cal</div>
+        </div>
+        <span class="meal-check"></span>
+      </div>
+    </div>
+    <div class="snack-note">🍎 Fruit snacks (~235 cal)</div>
+    <div class="macro-bars">
+      <div class="macro-row"><span class="macro-lbl">P</span><div class="macro-track"><div class="macro-fill fill-p" style="width:100%"></div></div><span class="macro-val">190 / 180g</span></div>
+      <div class="macro-row"><span class="macro-lbl">C</span><div class="macro-track"><div class="macro-fill fill-c" style="width:82%"></div></div><span class="macro-val">163 / 200g</span></div>
+      <div class="macro-row"><span class="macro-lbl">F</span><div class="macro-track"><div class="macro-fill fill-f" style="width:100%"></div></div><span class="macro-val">68 / 65g</span></div>
+    </div>
+  </div>
+
+  <!-- THU -->
+  <div class="day-card">
+    <div class="day-header">
+      <div><div class="day-name">Thursday</div><div class="day-sub">Apr 2 · Pull + 9mi Easy</div></div>
+      <span class="strain-badge HIGH">HIGH</span>
+    </div>
+    <div class="meals">
+      <div class="meal-row" onclick="toggle(this)" data-id="thu-l">
+        <span class="meal-icon">🐔</span>
+        <div class="meal-info">
+          <div class="meal-label">Lunch</div>
+          <div class="meal-name">Ground Chicken srv 3 + Rice<span class="badge-inline left-b">Leftover · Tue</span></div>
+          <div class="meal-macros">65p · 45c · 20f · 645 cal</div>
+        </div>
+        <span class="meal-check"></span>
+      </div>
+      <div class="meal-row" onclick="toggle(this)" data-id="thu-d">
+        <span class="meal-icon">🥩</span>
+        <div class="meal-info">
+          <div class="meal-label">Dinner</div>
+          <div class="meal-name">Ground Beef + Potatoes<span class="badge-inline cook-b">COOK TONIGHT</span></div>
+          <div class="meal-macros">69p · 54c · 32f · 790 cal</div>
+          <div class="meal-note">Stove 15 min · 3 lbs → 4 srv</div>
+        </div>
+        <span class="meal-check"></span>
+      </div>
+    </div>
+    <div class="snack-note">🍎 Fruit snacks (~235 cal)</div>
+    <div class="macro-bars">
+      <div class="macro-row"><span class="macro-lbl">P</span><div class="macro-track"><div class="macro-fill fill-p" style="width:100%"></div></div><span class="macro-val">182 / 180g</span></div>
+      <div class="macro-row"><span class="macro-lbl">C</span><div class="macro-track"><div class="macro-fill fill-c" style="width:82%"></div></div><span class="macro-val">163 / 200g</span></div>
+      <div class="macro-row"><span class="macro-lbl">F</span><div class="macro-track"><div class="macro-fill fill-f" style="width:100%"></div></div><span class="macro-val">78 / 65g</span></div>
+    </div>
+  </div>
+
+  <!-- FRI -->
+  <div class="day-card">
+    <div class="day-header">
+      <div><div class="day-name">Friday</div><div class="day-sub">Apr 3 · 1km Repeats 7.5mi</div></div>
+      <span class="strain-badge HIGH">HIGH</span>
+    </div>
+    <div class="meals">
+      <div class="meal-row" onclick="toggle(this)" data-id="fri-l">
+        <span class="meal-icon">🐔</span>
+        <div class="meal-info">
+          <div class="meal-label">Lunch</div>
+          <div class="meal-name">Ground Chicken srv 4 (last) + Rice<span class="badge-inline left-b">LAST</span></div>
+          <div class="meal-macros">65p · 45c · 20f · 645 cal</div>
+        </div>
+        <span class="meal-check"></span>
+      </div>
+      <div class="meal-row" onclick="toggle(this)" data-id="fri-d">
+        <span class="meal-icon">🥩</span>
+        <div class="meal-info">
+          <div class="meal-label">Dinner</div>
+          <div class="meal-name">Ground Beef srv 2 + Potatoes<span class="badge-inline left-b">Leftover · Thu</span></div>
+          <div class="meal-macros">69p · 54c · 32f · 790 cal</div>
+        </div>
+        <span class="meal-check"></span>
+      </div>
+    </div>
+    <div class="snack-note">🍎 Fruit snacks (~235 cal)</div>
+    <div class="macro-bars">
+      <div class="macro-row"><span class="macro-lbl">P</span><div class="macro-track"><div class="macro-fill fill-p" style="width:100%"></div></div><span class="macro-val">182 / 180g</span></div>
+      <div class="macro-row"><span class="macro-lbl">C</span><div class="macro-track"><div class="macro-fill fill-c" style="width:82%"></div></div><span class="macro-val">163 / 200g</span></div>
+      <div class="macro-row"><span class="macro-lbl">F</span><div class="macro-track"><div class="macro-fill fill-f" style="width:100%"></div></div><span class="macro-val">78 / 65g</span></div>
+    </div>
+  </div>
+
+  <!-- SAT -->
+  <div class="day-card">
+    <div class="day-header">
+      <div><div class="day-name">Saturday</div><div class="day-sub">Apr 4 · Push</div></div>
+      <span class="strain-badge MODERATE">MODERATE</span>
+    </div>
+    <div class="meals">
+      <div class="meal-row" onclick="toggle(this)" data-id="sat-l">
+        <span class="meal-icon">🥩</span>
+        <div class="meal-info">
+          <div class="meal-label">Lunch</div>
+          <div class="meal-name">Ground Beef srv 3 + Potatoes<span class="badge-inline left-b">Leftover · Thu</span></div>
+          <div class="meal-macros">69p · 54c · 32f · 790 cal</div>
+        </div>
+        <span class="meal-check"></span>
+      </div>
+      <div class="meal-row" onclick="toggle(this)" data-id="sat-d">
+        <span class="meal-icon">🍝</span>
+        <div class="meal-info">
+          <div class="meal-label">Dinner</div>
+          <div class="meal-name">Pasta<span class="badge-inline cook-b">COOK TONIGHT</span></div>
+          <div class="meal-macros">7p · 42c · 1f · 210 cal</div>
+          <div class="meal-note">Stove 15 min · 1 box → 4 srv · ★ Bake egg bake batch 2 tonight</div>
+        </div>
+        <span class="meal-check"></span>
+      </div>
+    </div>
+    <div class="snack-note">🍎 Fruit snacks (~235 cal) · 🥚 Stovetop eggs for breakfast today (24g protein)</div>
+    <div class="macro-bars">
+      <div class="macro-row"><span class="macro-lbl">P</span><div class="macro-track"><div class="macro-fill fill-p" style="width:58%"></div></div><span class="macro-val">102 / 180g</span></div>
+      <div class="macro-row"><span class="macro-lbl">C</span><div class="macro-track"><div class="macro-fill fill-c" style="width:83%"></div></div><span class="macro-val">160 / 200g</span></div>
+      <div class="macro-row"><span class="macro-lbl">F</span><div class="macro-track"><div class="macro-fill fill-f" style="width:82%"></div></div><span class="macro-val">53 / 65g</span></div>
+    </div>
+  </div>
+
+  <!-- SUN -->
+  <div class="day-card">
+    <div class="day-header">
+      <div><div class="day-name">Sunday</div><div class="day-sub">Apr 5 · Pull + 9.5mi Easy</div></div>
+      <span class="strain-badge HIGH">HIGH</span>
+    </div>
+    <div class="meals">
+      <div class="meal-row" onclick="toggle(this)" data-id="sun-l">
+        <span class="meal-icon">🥩</span>
+        <div class="meal-info">
+          <div class="meal-label">Lunch</div>
+          <div class="meal-name">Ground Beef srv 4 (last) + Potatoes<span class="badge-inline left-b">LAST</span></div>
+          <div class="meal-macros">69p · 54c · 32f · 790 cal</div>
+        </div>
+        <span class="meal-check"></span>
+      </div>
+      <div class="meal-row" onclick="toggle(this)" data-id="sun-d">
+        <span class="meal-icon">🍝</span>
+        <div class="meal-info">
+          <div class="meal-label">Dinner</div>
+          <div class="meal-name">Pasta srv 2<span class="badge-inline left-b">Leftover · Sat</span></div>
+          <div class="meal-macros">7p · 42c · 1f · 210 cal</div>
+        </div>
+        <span class="meal-check"></span>
+      </div>
+    </div>
+    <div class="snack-note">🍎 Fruit snacks (~235 cal) · Carry-in → Apr 6: Pasta (2 srv)</div>
+    <div class="macro-bars">
+      <div class="macro-row"><span class="macro-lbl">P</span><div class="macro-track"><div class="macro-fill fill-p" style="width:69%"></div></div><span class="macro-val">124 / 180g</span></div>
+      <div class="macro-row"><span class="macro-lbl">C</span><div class="macro-track"><div class="macro-fill fill-c" style="width:83%"></div></div><span class="macro-val">160 / 200g</span></div>
+      <div class="macro-row"><span class="macro-lbl">F</span><div class="macro-track"><div class="macro-fill fill-f" style="width:91%"></div></div><span class="macro-val">59 / 65g</span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ COOK TAB ══════════════════════════════════════ -->
+<div class="tab-content" id="tab-cook">
+
+  <div class="cook-card">
+    <div class="cook-header">
+      <div><div class="cook-title">🍗 Chicken Thighs + Potatoes</div><div class="cook-meta">Air fryer · ~70 min · 3 servings</div></div>
+      <span class="cook-day">MON</span>
+    </div>
+    <div class="cook-body">
+      <strong>Chicken Thighs:</strong> Pat dry ~3.5 lbs bone-in thighs. Season both sides. Air fryer 400°F, 35 min skin-down, flip, 30 min skin-up until 175°F internal.<br><br>
+      <strong>Potatoes ×1.5:</strong> Halve 9 medium potatoes (PEAK upsizing). Toss with olive oil + salt. Oven 425°F for 90 min, flip halfway. Start potatoes when you start chicken.<br><br>
+      <strong>Yields:</strong> 3 servings chicken (Mon dinner, Tue lunch, Wed lunch) + ~6 potato halves per serving
+      <div class="cook-tip"><strong>💧 Whoop Insight:</strong> Electrolytes are your #1 recovery booster (d=0.64). Drink electrolytes post-23mi and with this meal. Recovery is trending up +6% vs last month.</div>
+    </div>
+  </div>
+
+  <div class="cook-card">
+    <div class="cook-header">
+      <div><div class="cook-title">🐔 Ground Chicken + Rice</div><div class="cook-meta">Stove · ~25 min · 4 servings</div></div>
+      <span class="cook-day">TUE</span>
+    </div>
+    <div class="cook-body">
+      <strong>Ground Chicken:</strong> Brown 3 lbs in large skillet over medium-high, break into crumbles, 15 min until no pink. Season with garlic powder, onion powder, salt, pepper.<br><br>
+      <strong>Rice:</strong> 1.5 cups dry rice in rice cooker or pot. Yields ~4 servings (¾ cup dry each). Start rice when you start chicken — both done at same time.<br><br>
+      <strong>Yields:</strong> 4 servings (Tue dinner, Wed dinner, Thu lunch, Fri lunch)
+      <div class="cook-tip"><strong>🔔 Bell pepper suggestion:</strong> Dice 1–2 bell peppers into the ground chicken during last 5 min of cooking. Adds flavor + micronutrients for free.</div>
+    </div>
+  </div>
+
+  <div class="cook-card">
+    <div class="cook-header">
+      <div><div class="cook-title">🥩 Ground Beef + Potatoes</div><div class="cook-meta">Stove + Oven · ~90 min · 4 servings</div></div>
+      <span class="cook-day">THU</span>
+    </div>
+    <div class="cook-body">
+      <strong>Ground Beef (85/15):</strong> Brown 3 lbs in large skillet, 15 min. Drain excess fat. Season well.<br><br>
+      <strong>Potatoes:</strong> Halve 6 medium potatoes. Oven 425°F for 90 min. Start potatoes first, then begin beef when ~75 min remain.<br><br>
+      <strong>Yields:</strong> 4 servings (Thu dinner, Fri dinner, Sat lunch, Sun lunch)
+    </div>
+  </div>
+
+  <div class="cook-card">
+    <div class="cook-header">
+      <div><div class="cook-title">🍝 Pasta</div><div class="cook-meta">Stove · 15 min · 4 servings</div></div>
+      <span class="cook-day">SAT</span>
+    </div>
+    <div class="cook-body">
+      <strong>Pasta:</strong> Boil full box (1 lb) per package directions. Drain, toss with olive oil to prevent sticking.<br><br>
+      <strong>Yields:</strong> 4 servings (Sat dinner, Sun dinner, 2 carry into next week)<br><br>
+      <strong>★ Also tonight:</strong> Bake new egg bake batch — 24 eggs + 1.5 lbs ground turkey, combined and baked ~70 min. This is for next week's breakfasts.
+      <div class="cook-tip"><strong>⚠️ Low protein alert:</strong> Pasta-only dinners (Sat/Sun) = ~115g protein days. Consider adding a scoop of protein powder or extra eggs if available.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ GROCERIES TAB ═════════════════════════════════ -->
+<div class="tab-content" id="tab-groceries">
+
+  <div class="fridge-banner">
+    <div class="title">📦 On Hand (No Purchase Needed)</div>
+    <p>Chicken Breasts (~3 srv cooked carry-in) · Chicken Thighs (~3.5 lbs raw) · Ground Chicken (3 lbs raw) · Ground Beef (3 lbs raw) · Pasta (1 box)</p>
+  </div>
+
+  <div class="grocery-section">
+    <h3>🥚 Protein</h3>
+    <ul class="grocery-list">
+      <li>Eggs — 48 (2 packs of 24) <span class="note">Egg bake ×2 batches</span></li>
+      <li>Ground Turkey 90/10 — 3 lbs <span class="note">Egg bake ×2 batches</span></li>
+    </ul>
+  </div>
+
+  <div class="grocery-section">
+    <h3>🥔 Carbs & Sides</h3>
+    <ul class="grocery-list">
+      <li>Potatoes — 12 medium <span class="note">Mon ×1.5 + Thu + overflow</span></li>
+      <li>Rice — 2 lb bag <span class="note">Sun–Fri sides</span></li>
+      <li>Pasta — 1 box <span class="note">Sat cook night</span></li>
+    </ul>
+  </div>
+
+  <div class="grocery-section">
+    <h3>🍎 Fruit (Snacks)</h3>
+    <ul class="grocery-list">
+      <li>Apples — 7</li>
+      <li>Clementines — 7</li>
+      <li>Bananas — 7</li>
+    </ul>
+  </div>
+
+  <div class="grocery-section">
+    <h3>🥦 Vegetables (Optional)</h3>
+    <ul class="grocery-list">
+      <li>Broccoli — 2 heads</li>
+      <li>Cucumber — 2</li>
+    </ul>
+  </div>
+
+  <div class="chef-pick">
+    <div class="title">📊 Whoop Insight — March Analysis</div>
+    <p>Recovery up +6% to 57.6%. HRV at 132ms. Marathon prep on track. #1 tip: electrolytes (d=0.64 recovery boost). #1 risk: alcohol (d=-0.81). Keep this week clean.</p>
+  </div>
+
+</div>
+
+<!-- ══ BOTTOM NAV ════════════════════════════════════ -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="switchTab('plan',this)"><span class="icon">📋</span>Plan</button>
+  <button class="nav-btn" onclick="switchTab('cook',this)"><span class="icon">🍳</span>Cook</button>
+  <button class="nav-btn" onclick="switchTab('groceries',this)"><span class="icon">🛒</span>Groceries</button>
+</nav>
+
+<script>
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+function toggle(row) {
+  row.classList.toggle('done');
+  const key = 'mp-mar30-' + row.dataset.id;
+  if (row.classList.contains('done')) localStorage.setItem(key, '1');
+  else localStorage.removeItem(key);
+}
+// Restore state
+document.querySelectorAll('.meal-row').forEach(row => {
+  if (localStorage.getItem('mp-mar30-' + row.dataset.id)) row.classList.add('done');
+});
+</script>
+</body>
+</html>
