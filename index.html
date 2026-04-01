@@ -40,29 +40,7 @@
       --radius-sm: 8px;
     }
 
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --navy: #e8edf7;
-        --navy-mid: #c8d2e8;
-        --navy-light: #4a6090;
-        --gold: #c9a84c;
-        --gold-light: #d4b96a;
-        --gold-pale: #2a2318;
-        --cream: #0f1420;
-        --white: #161e30;
-        --text: #e8edf7;
-        --text-mid: #b0bcd4;
-        --text-soft: #7a8ba8;
-        --text-pale: #4a5878;
-        --border: #2a3450;
-        --border-light: #1e2840;
-        --card-bg: #161e30;
-        --section-bg: #121828;
-        --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
-        --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
-        --shadow-lg: 0 12px 40px rgba(0,0,0,0.5);
-      }
-    }
+    /* dark mode disabled — light only */
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -92,9 +70,6 @@
       justify-content: space-between;
     }
 
-    @media (prefers-color-scheme: dark) {
-      nav { background: rgba(15,20,32,0.88); }
-    }
 
     .nav-logo {
       font-family: 'DM Serif Display', serif;
@@ -213,13 +188,13 @@
     }
 
     .btn-primary {
-      background: var(--navy);
+      background: #1a2744;
       color: #fff;
       box-shadow: var(--shadow-sm);
     }
 
     .btn-primary:hover {
-      background: var(--navy-light);
+      background: #2e4070;
       box-shadow: var(--shadow-md);
       transform: translateY(-1px);
     }
@@ -616,9 +591,6 @@
     .arch-diagram .dim { color: var(--text-pale); }
     .arch-diagram .accent { color: var(--navy-light); }
 
-    @media (prefers-color-scheme: dark) {
-      .arch-diagram .accent { color: #7a9cd4; }
-    }
 
     /* ── AGENTS ── */
     .agents-grid {
@@ -841,9 +813,6 @@
       transition: border-color 0.2s;
     }
 
-    @media (prefers-color-scheme: dark) {
-      .detail-link { color: #7a9cd4; }
-    }
 
     .detail-link:hover { border-color: currentColor; }
 
@@ -949,7 +918,7 @@
       width: 48px;
       height: 56px;
       border-radius: 6px;
-      background: var(--navy);
+      background: #1a2744;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -988,8 +957,8 @@
     .pipeline .section-desc { color: rgba(255,255,255,0.6); }
 
     .pipeline-code {
-      background: rgba(0,0,0,0.3);
-      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.1);
       border-radius: var(--radius);
       padding: 36px 40px;
       font-family: 'Courier New', monospace;
