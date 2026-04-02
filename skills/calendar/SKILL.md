@@ -20,6 +20,8 @@ Meals are handled by `/gordon-ramsay` — do not duplicate that here.
 Call `gcal_list_calendars` to find training-related calendars ("Training", "Runna", "Workout", "Fitness", "Run", "Lift").
 Call `gcal_list_events` for Mon–Sun of the target week on all relevant calendars + primary calendar.
 
+**Also read `agent-weights.json`** (`Personal/Health/Meals/agent-weights.json`). If present, check `calendar.*_strain_accuracy` values. If any tier's accuracy < 0.9, surface a note after the strain map is built: "Note: [TIER] sessions have been over/under-shooting actual Whoop strain recently — consider adjusting targets." If file is missing or all values are `1.0`, no note needed.
+
 Use results to:
 - Detect pre-existing commitments (travel, events, rest days) that constrain scheduling
 - Identify workouts already logged — avoid double-scheduling

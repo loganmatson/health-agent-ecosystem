@@ -35,12 +35,16 @@ meal and training plans are finalized.
 | Historical risk log | `seizure-risk.json` | File read |
 | Strain map | Passed from Phase 2 (optimize-week) | Internal variable |
 | Meal annotations | `meal-annotations.json` | File read |
+| Agent weights | `agent-weights.json` | File read — apply multipliers to factor thresholds |
 
 **File paths** (all relative to `/Users/loganmatson/Desktop/AI Work/`):
 - `Personal/Health/Meals/neurologist-signals.json`
 - `Personal/Health/Meals/seizure-risk.json`
 - `Personal/Health/Meals/meal-annotations.json`
+- `Personal/Health/Meals/agent-weights.json`
 - `DataSets/Whoop/` — most recent raw CSV (fallback if neurologist-signals.json missing)
+
+**Reading agent weights:** Before scoring any risk factor, read `agent-weights.json` and apply `neurologist.*` values as multipliers to factor thresholds. Example: `sleep_fatigue_threshold: 1.08` means the sleep/fatigue factor is 8% more sensitive this cycle — lower the Recovery % threshold for a yellow accordingly. If `agent-weights.json` is missing, use all multipliers at `1.0` (neutral — no adjustment).
 
 If `neurologist-signals.json` does not exist, extract the 12 journal signals from
 `journal_entries.csv` for the last 7 days.

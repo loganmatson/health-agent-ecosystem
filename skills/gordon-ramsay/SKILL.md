@@ -106,6 +106,14 @@ Uses the strain map from Phase 0 + pantry rules + meal history to place meals in
 
 ---
 
+**Step 0 — Read agent weights (silent)**
+
+Read `Personal/Health/Meals/agent-weights.json`. If missing, use all values at neutral defaults.
+
+Extract `gordon_ramsay.entree_recovery_correlations`. On HIGH and PEAK strain days where multiple Tier 1 entrees are available, prefer the entree with the highest `next_day_recovery_lift` or `next_day_stress_reduction` value. This is a tiebreaker — never override pantry rules, steak constraints, or variety window rules. If all correlations are `0.0` (no data yet), proceed with standard protein-density ranking.
+
+---
+
 **Step 1 — Select entrees (3-week variety window)**
 - If FRESH_SLATE = true: skip lookback entirely — select E1, E2, E3 purely by protein density rank for the week's strain profile
 - Otherwise: Read meal-log.md for the last **3 weeks** of entrees used; do NOT pick any entree used 3 weeks in a row; if all entrees were used recently, pick the least-recently-used

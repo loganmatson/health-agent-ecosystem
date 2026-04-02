@@ -1,0 +1,4 @@
+{
+  "_description": "Longitudinal accuracy log for the Retrospective Validator (Phase 0.5 in optimize-week). One entry per monthly Whoop upload. Tracks agent forecast accuracy over time — used to detect drift, validate whether risk models are improving, and surface long-term patterns across neurological, nutrition, and training domains. Never overwritten — append-only.",
+  "runs": []
+}

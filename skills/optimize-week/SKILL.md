@@ -31,6 +31,7 @@ Verify the following files exist before proceeding. Report any missing files, th
 | Workout plan | `/Users/loganmatson/Desktop/AI Work/Personal/Health/Training/workout-plan.md` | Non-critical — ATHLETE.md covers it |
 | Neurologist signals | `/Users/loganmatson/Desktop/AI Work/Personal/Health/Meals/neurologist-signals.json` | Non-critical — Phase 2.5 fallback handles it |
 | Neurologist config | `/Users/loganmatson/Desktop/AI Work/Personal/Health/Meals/neurologist-config.json` | Non-critical — hardcoded defaults in Phase 2.5 |
+| Agent weights | `/Users/loganmatson/Desktop/AI Work/Personal/Health/Meals/agent-weights.json` | Non-critical — created on first run if missing |
 
 If any critical file is missing: print the path and stop. Do not proceed.
 If non-critical files are missing: note them once, continue.
@@ -72,6 +73,118 @@ After analysis (or if analysis was already done), read the most recent Whoop out
 **No Whoop data at all (first run or mid-month):**
 Print: `ℹ️ No Whoop data for this month yet. Using defaults for training and meals.`
 Set `WHOOP_INSIGHTS = null`. Proceed normally.
+
+---
+
+## Phase 0.5 — Retrospective Validator (runs only when Phase 0 detects new Whoop data)
+
+**Goal:** Compare last month's agent forecasts against actual Whoop biometrics. Recalibrate `agent-weights.json` so downstream agents self-improve over time.
+
+**Trigger:** Only runs if Phase 0 Step 3 detected new Whoop data (raw CSVs present, output missing). If Phase 0 skipped (no new data), print: `↩ No new Whoop data — agent weights unchanged.` and skip to Phase 1.
+
+**Steps:**
+
+1. **Determine prior month's date range** from the newly detected Whoop CSV folder (e.g., `Mar 26` → March 1–31).
+
+2. **Read prior month's forecasts** (in parallel):
+   - `Personal/Health/Meals/seizure-risk.json` — per-day risk forecasts + per-factor scores
+   - `Personal/Health/Meals/meal-annotations.json` — entree per day, protein tier, macros
+   - `Personal/Health/pipeline-state.json` — planned strain tiers per session
+
+3. **Read prior month's actuals** from Whoop CSVs already loaded in Phase 0:
+   - `physiological_cycles.csv` — Recovery %, HRV (ms), Day Strain, Sleep performance %
+   - `journal_entries.csv` — 12 binary signals per day
+   - Match rows to dates using `Cycle start time` column; nearest-day match if off by hours.
+
+4. **Score accuracy per agent:**
+
+   **Neurologist:** For each day with a forecasted risk level, compare against actual Recovery % and HRV:
+   - Missed yellow: forecasted GREEN + (Recovery < 50% OR HRV dropped >20% from prior 7-day avg)
+   - Over-forecast: forecasted RED + Recovery > 75%
+   - Score each factor independently; note which factors were most often wrong
+
+   **Gordon Ramsay:** For each entree in `meal-annotations.json`, look up next-day Recovery %, HRV, and `Stress` field in `journal_entries.csv`:
+   - Build running correlation per entree
+   - New data weighted 30%, existing history 70%
+   - Update `entree_recovery_correlations` values accordingly
+
+   **Calendar:** Compare planned strain tier (from `pipeline-state.json`) against actual `Day Strain`:
+   - PEAK planned = actual ≥ 18; HIGH = 14–18; MODERATE = 10–14; LOW < 10
+   - Compute average delta per tier
+
+5. **Read `agent-weights.json`** (`Personal/Health/Meals/agent-weights.json`). If missing, create it with all weights at `1.0` and chicken_breast `next_day_stress_reduction: 0.85` before proceeding.
+
+6. **Apply weight updates** (±15% max per factor per run; absolute bounds [0.5, 2.0]):
+   - Neurologist: adjust factor weights based on accuracy scoring
+   - Gordon Ramsay: update `entree_recovery_correlations` from step 4
+   - Calendar: update `*_strain_accuracy` multipliers
+
+7. **Validate `agent-weights.json` structure before writing** — confirm all required keys are present and all values are within [0.5, 2.0]. If any key is missing or out of bounds, log it and skip that key's update rather than writing a malformed file. Required top-level keys: `last_updated`, `neurologist`, `gordon_ramsay`, `calendar`. Required neurologist keys: `alcohol_weight`, `strain_threshold`, `sleep_fatigue_threshold`, `neurological_signals_weight`, `travel_window_days`, `schedule_hour_threshold`. If structure is invalid and cannot be repaired, abort the weights write, log "agent-weights.json write aborted — schema violation", and proceed to Phase 1 with no weight changes.
+
+8. **Write updated `agent-weights.json`** with `last_updated` set to today's ISO date.
+
+9. **Append run to `validator-history.json`** (`Personal/Health/Meals/validator-history.json`) — this is an append-only longitudinal log. Never overwrite; always append a new object to the `runs` array:
+   ```json
+   {
+     "run_date": "2026-04-06",
+     "month_validated": "2026-03",
+     "sample_days": 28,
+     "neurologist": {
+       "accuracy_rate": 0.71,
+       "days_accurate": 5,
+       "days_total": 7,
+       "missed_yellows": 1,
+       "over_forecasts": 1,
+       "top_miss_factor": "sleep_fatigue"
+     },
+     "gordon_ramsay": {
+       "top_correlation": "chicken_breast",
+       "top_stress_reduction": 0.91,
+       "entrees_tracked": 3
+     },
+     "calendar": {
+       "peak_avg_delta": -2.3,
+       "high_avg_delta": 0.4,
+       "moderate_avg_delta": 1.1,
+       "low_avg_delta": 0.0
+     },
+     "weights_changed": true,
+     "factors_capped": []
+   }
+   ```
+
+10. **Append `validator` block to `pipeline-state.json`**:
+   ```json
+   "validator": {
+     "run_date": "2026-04-06",
+     "month_validated": "2026-03",
+     "neurologist_accuracy": "5/7 days",
+     "gordon_ramsay_top_correlation": "chicken_breast → stress_reduction 0.91",
+     "calendar_peak_delta": -2.3
+   }
+   ```
+
+11. **Print inline summary** — then proceed to Phase 1:
+   ```
+   PHASE 0.5 — RETROSPECTIVE VALIDATOR (March)
+
+   NEUROLOGIST: 5/7 days accurate. Missed: Thursday (GREEN forecasted, HRV -22%).
+   → sleep_fatigue_threshold: 1.00 → 1.08
+
+   GORDON RAMSAY: Chicken breast → next-day stress reduction confirmed (3/3 occurrences).
+   → chicken_breast.next_day_stress_reduction: 0.85 → 0.91
+
+   CALENDAR: PEAK sessions over-shot by avg 2.3 pts.
+   → peak_strain_accuracy: 1.00 → 0.88
+
+   agent-weights.json updated. Proceeding to Phase 1.
+   ```
+
+**Edge cases:**
+- < 14 days of biometric data in prior month: run partial validation, note sample size in summary
+- Entree not in weights file: add with `0.0` values; accumulate future data before influencing GR
+- Any single factor would exceed ±15% shift: cap at 15%, note in summary
+- Missing `seizure-risk.json` entries for prior month: skip neurologist validation, log it
 
 ---
 

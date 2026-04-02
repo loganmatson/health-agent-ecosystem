@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Validator Accuracy Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #0f0f11;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.8rem;
+      color: #f8fafc;
+      margin-bottom: 0.25rem;
+    }
+
+    .subtitle {
+      font-size: 0.875rem;
+      color: #64748b;
+      margin-bottom: 2rem;
+    }
+
+    .disclaimer {
+      background: #1e1b2e;
+      border-left: 3px solid #7c3aed;
+      padding: 0.75rem 1rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      color: #a78bfa;
+      margin-bottom: 2rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: #16161a;
+      border: 1px solid #1e1e24;
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .card-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #f1f5f9;
+    }
+
+    .card-tag {
+      font-size: 0.7rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Accuracy meter */
+    .accuracy-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .accuracy-label {
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+
+    .accuracy-val {
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .bar-track {
+      height: 6px;
+      background: #1e1e2e;
+      border-radius: 3px;
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 1s ease;
+    }
+
+    /* Risk color chips */
+    .chip {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .chip-green  { background: #052e16; color: #4ade80; }
+    .chip-yellow { background: #2d2200; color: #facc15; }
+    .chip-red    { background: #2d0a0a; color: #f87171; }
+
+    /* Weight shift rows */
+    .weight-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #1a1a22;
+      font-size: 0.8rem;
+    }
+
+    .weight-row:last-child { border-bottom: none; }
+
+    .weight-name { color: #94a3b8; }
+
+    .weight-change {
+      font-weight: 600;
+      font-size: 0.78rem;
+    }
+
+    .up   { color: #4ade80; }
+    .down { color: #f87171; }
+    .flat { color: #64748b; }
+
+    /* Correlation table */
+    .corr-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #1a1a22;
+      font-size: 0.8rem;
+    }
+
+    .corr-row:last-child { border-bottom: none; }
+    .corr-name { color: #94a3b8; }
+
+    .corr-bar-wrap { width: 100px; }
+
+    .corr-bar-track {
+      height: 4px;
+      background: #1e1e2e;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .corr-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: #fb923c;
+    }
+
+    .corr-val { font-weight: 600; font-size: 0.78rem; color: #fb923c; width: 40px; text-align: right; }
+
+    /* Calendar delta */
+    .delta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    .delta-cell {
+      background: #1a1a22;
+      border-radius: 8px;
+      padding: 0.75rem;
+      text-align: center;
+    }
+
+    .delta-tier {
+      font-size: 0.7rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+
+    .delta-val {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .delta-label {
+      font-size: 0.68rem;
+      color: #64748b;
+      margin-top: 0.2rem;
+    }
+
+    /* History table */
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+
+    .history-table th {
+      text-align: left;
+      color: #64748b;
+      font-weight: 500;
+      padding: 0.4rem 0.5rem;
+      border-bottom: 1px solid #1e1e24;
+      text-transform: uppercase;
+      font-size: 0.68rem;
+      letter-spacing: 0.05em;
+    }
+
+    .history-table td {
+      padding: 0.5rem 0.5rem;
+      border-bottom: 1px solid #12121a;
+      color: #cbd5e1;
+    }
+
+    .history-table tr:last-child td { border-bottom: none; }
+
+    .stat-big {
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      color: #64748b;
+      margin-top: 0.25rem;
+    }
+
+    .stats-row {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .no-data {
+      text-align: center;
+      color: #334155;
+      font-size: 0.82rem;
+      padding: 1.5rem 0;
+    }
+
+    .badge-new {
+      background: #1e3a5f;
+      color: #60a5fa;
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-left: 0.5rem;
+    }
+
+    .section-label {
+      font-size: 0.72rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+    }
+
+    .importance-banner {
+      background: linear-gradient(135deg, #0f1f0f 0%, #0f0f11 100%);
+      border: 1px solid #166534;
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .importance-banner h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.1rem;
+      color: #4ade80;
+      margin-bottom: 0.5rem;
+    }
+
+    .importance-banner p {
+      font-size: 0.83rem;
+      color: #86efac;
+      line-height: 1.6;
+    }
+
+    .importance-banner ul {
+      margin-top: 0.5rem;
+      padding-left: 1.25rem;
+    }
+
+    .importance-banner li {
+      font-size: 0.82rem;
+      color: #86efac;
+      line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Retrospective Validator</h1>
+  <p class="subtitle">Phase 0.5 — Self-calibrating accuracy layer for Neurologist, Gordon Ramsay, and Calendar agents</p>
+
+  <div class="disclaimer">
+    ⚠️ Sample data below is <strong>fictionalized for demonstration purposes</strong>. Real data populates automatically on each monthly Whoop upload via <code>/optimize-week</code>.
+  </div>
+
+  <div class="importance-banner">
+    <h2>Why This Matters</h2>
+    <p>Most AI health systems make predictions but never check if they were right. This validator closes that loop:</p>
+    <ul>
+      <li><strong>Neurologist Agent</strong> forecasts seizure risk — but does an elevated-stress day actually tank HRV the next morning? Now we know.</li>
+      <li><strong>Gordon Ramsay</strong> selects meals by protein tier — but does chicken breast actually reduce next-day stress vs. ground beef? Now we track it.</li>
+      <li><strong>Calendar Agent</strong> plans strain targets — but are PEAK sessions actually hitting ≥18 Whoop strain? Now we flag drift.</li>
+      <li><strong>validator-history.json</strong> accumulates every monthly run — building a longitudinal dataset that shows whether these agents are genuinely getting smarter over time.</li>
+    </ul>
+  </div>
+
+  <div class="grid">
+
+    <!-- Neurologist Card -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:#1f0a12;">⬡</div>
+        <div>
+          <div class="card-title">Neurologist Agent <span class="badge-new">Accuracy</span></div>
+          <div class="card-tag">Risk Forecast vs. Actual Biometrics</div>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div>
+          <div class="stat-big" style="color:#f43f5e;">5<span style="font-size:1rem;color:#64748b;">/7</span></div>
+          <div class="stat-label">Days accurate (sample)</div>
+        </div>
+        <div>
+          <div class="stat-big" style="color:#facc15;">71<span style="font-size:1rem;color:#64748b;">%</span></div>
+          <div class="stat-label">Accuracy rate</div>
+        </div>
+      </div>
+
+      <div class="section-label">Per-Factor Forecast Results</div>
+
+      <div class="accuracy-row"><span class="accuracy-label">Sleep / Fatigue</span><span class="accuracy-val up">+8% sensitivity</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:71%;background:#f43f5e;"></div></div>
+
+      <div class="accuracy-row"><span class="accuracy-label">Alcohol</span><span class="accuracy-val flat">No change</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:100%;background:#4ade80;"></div></div>
+
+      <div class="accuracy-row"><span class="accuracy-label">Strain</span><span class="accuracy-val flat">No change</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:86%;background:#4ade80;"></div></div>
+
+      <div class="accuracy-row"><span class="accuracy-label">Neurological Signals</span><span class="accuracy-val flat">No change</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:100%;background:#4ade80;"></div></div>
+
+      <div class="section-label" style="margin-top:0.5rem;">Misses This Month</div>
+      <div class="weight-row">
+        <span class="weight-name">Thu Mar 20 — forecasted GREEN</span>
+        <span class="chip chip-yellow">HRV −22%</span>
+      </div>
+      <div class="weight-row">
+        <span class="weight-name">Sat Mar 22 — forecasted RED</span>
+        <span class="chip chip-green">Recovery 78%</span>
+      </div>
+    </div>
+
+    <!-- Gordon Ramsay Card -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:#1f1000;">◈</div>
+        <div>
+          <div class="card-title">Gordon Ramsay Agent <span class="badge-new">Correlations</span></div>
+          <div class="card-tag">Entree → Next-Day Biometric Outcomes</div>
+        </div>
+      </div>
+
+      <div class="section-label">Next-Day Stress Reduction by Entree</div>
+
+      <div class="corr-row">
+        <span class="corr-name">Chicken Breast</span>
+        <div class="corr-bar-wrap">
+          <div class="corr-bar-track"><div class="corr-bar-fill" style="width:91%;"></div></div>
+        </div>
+        <span class="corr-val">0.91</span>
+      </div>
+      <div class="corr-row">
+        <span class="corr-name">Atlantic Salmon</span>
+        <div class="corr-bar-wrap">
+          <div class="corr-bar-track"><div class="corr-bar-fill" style="width:62%;"></div></div>
+        </div>
+        <span class="corr-val">0.62</span>
+      </div>
+      <div class="corr-row">
+        <span class="corr-name">Ground Turkey</span>
+        <div class="corr-bar-wrap">
+          <div class="corr-bar-track"><div class="corr-bar-fill" style="width:54%;"></div></div>
+        </div>
+        <span class="corr-val">0.54</span>
+      </div>
+      <div class="corr-row">
+        <span class="corr-name">Ground Beef</span>
+        <div class="corr-bar-wrap">
+          <div class="corr-bar-track"><div class="corr-bar-fill" style="width:41%;"></div></div>
+        </div>
+        <span class="corr-val">0.41</span>
+      </div>
+      <div class="corr-row">
+        <span class="corr-name">Ribeye</span>
+        <div class="corr-bar-wrap">
+          <div class="corr-bar-track"><div class="corr-bar-fill" style="width:29%;"></div></div>
+        </div>
+        <span class="corr-val">0.29</span>
+      </div>
+
+      <div class="section-label" style="margin-top:1.25rem;">Weight Shifts This Month</div>
+      <div class="weight-row">
+        <span class="weight-name">chicken_breast.stress_reduction</span>
+        <span class="weight-change up">0.85 → 0.91</span>
+      </div>
+      <div class="weight-row">
+        <span class="weight-name">salmon.stress_reduction</span>
+        <span class="weight-change up">0.00 → 0.62</span>
+      </div>
+      <div class="weight-row">
+        <span class="weight-name">ground_beef.stress_reduction</span>
+        <span class="weight-change flat">0.00 → 0.41</span>
+      </div>
+    </div>
+
+    <!-- Calendar Card -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:#0f1a2e;">📅</div>
+        <div>
+          <div class="card-title">Calendar Agent <span class="badge-new">Strain Accuracy</span></div>
+          <div class="card-tag">Planned Tier vs. Actual Whoop Day Strain</div>
+        </div>
+      </div>
+
+      <div class="section-label">Average Delta: Planned vs. Actual</div>
+
+      <div class="delta-grid">
+        <div class="delta-cell">
+          <div class="delta-tier">PEAK</div>
+          <div class="delta-val down">−2.3</div>
+          <div class="delta-label">Over-planned</div>
+        </div>
+        <div class="delta-cell">
+          <div class="delta-tier">HIGH</div>
+          <div class="delta-val" style="color:#4ade80;">+0.4</div>
+          <div class="delta-label">On target</div>
+        </div>
+        <div class="delta-cell">
+          <div class="delta-tier">MODERATE</div>
+          <div class="delta-val" style="color:#facc15;">+1.1</div>
+          <div class="delta-label">Slight under</div>
+        </div>
+        <div class="delta-cell">
+          <div class="delta-tier">LOW</div>
+          <div class="delta-val flat" style="color:#64748b;">0.0</div>
+          <div class="delta-label">Accurate</div>
+        </div>
+      </div>
+
+      <div class="section-label" style="margin-top:1.25rem;">Accuracy Multipliers</div>
+      <div class="weight-row">
+        <span class="weight-name">peak_strain_accuracy</span>
+        <span class="weight-change down">1.00 → 0.88</span>
+      </div>
+      <div class="weight-row">
+        <span class="weight-name">high_strain_accuracy</span>
+        <span class="weight-change flat">1.00 → 1.00</span>
+      </div>
+      <div class="weight-row">
+        <span class="weight-name">moderate_strain_accuracy</span>
+        <span class="weight-change flat">1.00 → 1.00</span>
+      </div>
+      <div class="weight-row">
+        <span class="weight-name">low_strain_accuracy</span>
+        <span class="weight-change flat">1.00 → 1.00</span>
+      </div>
+    </div>
+
+    <!-- History Card -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:#0a1a1f;">📈</div>
+        <div>
+          <div class="card-title">Accuracy Trend <span class="badge-new">History</span></div>
+          <div class="card-tag">validator-history.json — Append-Only Longitudinal Log</div>
+        </div>
+      </div>
+
+      <p style="font-size:0.8rem;color:#94a3b8;margin-bottom:1rem;line-height:1.6;">
+        Every monthly Whoop upload appends a new entry. Over 6–12 months this becomes a genuine longitudinal record — showing whether agents improve, which factors are hardest to forecast, and whether the neurological risk model is clinically predictive.
+      </p>
+
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th>Neuro %</th>
+            <th>Top Corr</th>
+            <th>Peak Δ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Mar 2026</td>
+            <td style="color:#facc15;">71%</td>
+            <td style="color:#fb923c;">chicken_breast</td>
+            <td style="color:#f87171;">−2.3</td>
+          </tr>
+          <tr>
+            <td colspan="4" class="no-data">Future runs will appear here automatically</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <p style="font-size:0.75rem;color:#334155;text-align:center;">
+    Data shown is fictionalized sample output · Real values populated by <code>/optimize-week</code> Phase 0.5 on each monthly Whoop upload · <code>validator-history.json</code> is append-only and never overwritten
+  </p>
+
+</body>
+</html>

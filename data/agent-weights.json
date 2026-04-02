@@ -1,0 +1,46 @@
+{
+  "last_updated": "2026-04-02",
+  "neurologist": {
+    "alcohol_weight": 1.0,
+    "strain_threshold": 1.0,
+    "sleep_fatigue_threshold": 1.0,
+    "neurological_signals_weight": 1.0,
+    "travel_window_days": 1.0,
+    "schedule_hour_threshold": 1.0
+  },
+  "gordon_ramsay": {
+    "entree_recovery_correlations": {
+      "chicken_breast": {
+        "next_day_recovery_lift": 0.0,
+        "next_day_stress_reduction": 0.85
+      },
+      "salmon": {
+        "next_day_recovery_lift": 0.0,
+        "next_day_stress_reduction": 0.0
+      },
+      "ribeye": {
+        "next_day_recovery_lift": 0.0,
+        "next_day_stress_reduction": 0.0
+      },
+      "shaved_steak": {
+        "next_day_recovery_lift": 0.0,
+        "next_day_stress_reduction": 0.0
+      },
+      "ground_beef": {
+        "next_day_recovery_lift": 0.0,
+        "next_day_stress_reduction": 0.0
+      },
+      "pasta": {
+        "next_day_recovery_lift": 0.0,
+        "next_day_stress_reduction": 0.0
+      }
+    },
+    "protein_tier_recovery_threshold": 1.0
+  },
+  "calendar": {
+    "peak_strain_accuracy": 1.0,
+    "high_strain_accuracy": 1.0,
+    "moderate_strain_accuracy": 1.0,
+    "low_strain_accuracy": 1.0
+  }
+}
