@@ -112,7 +112,7 @@ This file is populated **monthly** when new Whoop data is exported and Phase 0 o
 Score each factor green / yellow / red for the upcoming week using forecast logic only.
 You are projecting from Sunday's baseline — not monitoring live.
 
-**Before scoring:** Read `agent-weights.json` and apply the relevant `neurologist.*` multiplier to each factor's thresholds. A multiplier > 1.0 means the validator found this factor was **under-predicting** risk — make it more sensitive. A multiplier < 1.0 means it was **over-predicting** — relax the threshold. Use the last 7 days of `neurologist-signals.json` as the baseline window.
+**Before scoring:** Read `agent-weights.json` and apply the relevant `neurologist.*` multiplier to each factor's thresholds. A multiplier > 1.0 means the validator found this factor was **under-predicting** risk — make it more sensitive. A multiplier < 1.0 means it was **over-predicting** — relax the threshold. Use the last **30 days** of `neurologist-signals.json` as the baseline window — 7 days is too volatile (one heavy lifting week or rest week skews the signal).
 
 ### 1. Cumulative Strain
 *Weight: `strain_threshold`*
@@ -295,4 +295,4 @@ Set top-level `last_updated` to today's ISO timestamp. Write the full file back 
 - **Always read `agent-weights.json` before scoring** — if missing, proceed with all weights at 1.0 (neutral); never halt the pipeline over a missing weights file
 - **Never modify `agent-weights.json`** — only the Phase 0.5 Retrospective Validator writes to this file; this agent is a consumer only
 - **Never modify `validator-history.json`** — append-only log managed by Phase 0.5
-- `neurologist-signals.json` contains longitudinal data across months — use only the last 7 days for the current forecast baseline, but note if historical patterns in the prior 30 days show recurring signals (e.g., alcohol every weekend for 3+ weeks → flag as recurring pattern in the report)
+- `neurologist-signals.json` contains longitudinal data across months — use the last **30 days** as the baseline window for scoring (smooths out single heavy/rest weeks). Flag recurring patterns within that window (e.g., alcohol every weekend for 3+ weeks → flag as recurring pattern in the report)
