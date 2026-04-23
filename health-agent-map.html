@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Agent Ecosystem">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agent Ecosystem — Logan Matson</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#04060f;
+  --surface:rgba(255,255,255,0.04);
+  --surface2:rgba(255,255,255,0.08);
+  --border:rgba(255,255,255,0.09);
+  --border2:rgba(255,255,255,0.16);
+  --text:#f1f5f9;
+  --muted:#64748b;
+  --muted2:#94a3b8;
+}
+html,body{width:100%;min-height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(rgba(255,255,255,0.025) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+
+.orb{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0;}
+.o1{width:600px;height:600px;background:#6366f1;opacity:.07;top:-200px;left:-150px;animation:orbDrift 25s ease-in-out infinite alternate;}
+.o2{width:500px;height:500px;background:#06b6d4;opacity:.06;bottom:-150px;right:-100px;animation:orbDrift 30s ease-in-out infinite alternate-reverse;}
+.o3{width:350px;height:350px;background:#f43f5e;opacity:.05;top:50%;left:50%;animation:orbDrift 20s ease-in-out infinite alternate;}
+@keyframes orbDrift{from{transform:translate(0,0);}to{transform:translate(40px,30px);}}
+@keyframes dashFlow{to{stroke-dashoffset:-24;}}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+@keyframes panelIn{from{opacity:0;transform:translateX(16px);}to{opacity:1;transform:translateX(0);}}
+@keyframes nodePulse{0%,100%{opacity:0;}50%{opacity:.2;}}
+
+/* ===== HEADER ===== */
+#header{position:relative;z-index:10;padding:44px 60px 0;text-align:center;}
+.header-eyebrow{font-size:.68rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.header-title{font-family:'DM Serif Display',serif;font-size:2.8rem;line-height:1.1;background:linear-gradient(135deg,#a5b4fc 0%,#67e8f9 50%,#f1f5f9 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px;}
+.header-sub{font-size:.88rem;color:var(--muted2);max-width:520px;margin:0 auto 16px;line-height:1.75;}
+.header-meta{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;}
+.hmeta-pill{padding:3px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--surface);font-size:.66rem;color:var(--muted2);letter-spacing:.04em;}
+
+.section-label{font-size:.6rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:28px;display:flex;align-items:center;gap:12px;justify-content:center;}
+.section-label::before,.section-label::after{content:'';flex:1;max-width:80px;height:1px;background:var(--border);}
+.divider{width:100%;max-width:860px;height:1px;background:linear-gradient(to right,transparent,var(--border),transparent);margin:0 auto;}
+
+/* ===== FLOW SECTION ===== */
+#flow-section{position:relative;z-index:5;padding:50px 0 0;}
+
+#flow-wrapper{
+  display:flex;
+  align-items:flex-start;
+  max-width:1200px;
+  margin:0 auto;
+  padding:0 30px;
+  gap:0;
+}
+
+/* Diagram pane — starts full width, shrinks on open */
+#diagram-pane{
+  flex:1 1 100%;
+  min-width:0;
+  transition:flex-basis .45s cubic-bezier(.16,1,.3,1);
+}
+#diagram-pane.panel-open{
+  flex:0 0 58%;
+}
+
+#flow-canvas{
+  position:relative;
+  width:100%;
+  aspect-ratio:1/0.82;
+}
+#flow-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+#nodes-container{position:absolute;inset:0;overflow:visible;}
+
+/* Detail pane — hidden by default, slides in */
+#detail-pane{
+  flex:0 0 0;
+  overflow:hidden;
+  transition:flex-basis .45s cubic-bezier(.16,1,.3,1);
+  background:transparent;
+}
+#detail-pane.open{
+  flex:0 0 42%;
+  max-width:440px;
+}
+
+#detail-inner{
+  width:100%;
+  max-width:440px;
+  padding:28px 24px 40px 20px;
+  overflow-y:auto;
+  background:transparent;
+  /* NO min-height — prevents black gap */
+}
+#detail-inner::-webkit-scrollbar{width:4px;}
+#detail-inner::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+
+/* Content wrapper gets the animation, not detail-inner */
+.detail-content{animation:panelIn .32s ease both;}
+
+/* ===== NODE CARDS ===== */
+.agent-node{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  cursor:pointer;
+  z-index:10;
+  /* transition on opacity and transform only — left/top are set by JS */
+  transition:opacity .35s ease, transform .35s cubic-bezier(.16,1,.3,1);
+}
+.agent-card{
+  width:130px;
+  padding:16px 10px 13px;
+  border-radius:20px;
+  border:1px solid var(--border);
+  background:rgba(8,12,28,0.72);
+  backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+  text-align:center;
+  transition:border-color .3s, box-shadow .3s;
+  position:relative;
+  overflow:hidden;
+}
+.agent-card::before{
+  content:'';position:absolute;inset:0;border-radius:20px;
+  background:radial-gradient(ellipse at top,var(--ac-glow) 0%,transparent 65%);
+  pointer-events:none;
+}
+
+/* Default hover — only when no state active */
+.agent-node:not(.dimmed):not(.active-node):not(.connected-node):hover .agent-card{
+  border-color:var(--ac);
+  box-shadow:0 0 30px var(--ac-glow),0 12px 40px rgba(0,0,0,.5);
+  transform:translateY(-4px) scale(1.03);
+}
+
+/* Active node */
+.agent-node.active-node{
+  opacity:1;
+  transform:translate(-50%,-50%) scale(1.07);
+  z-index:20;
+}
+.agent-node.active-node .agent-card{
+  border-color:var(--ac);
+  box-shadow:0 0 50px var(--ac-glow),0 20px 56px rgba(0,0,0,.7);
+}
+
+/* Connected node */
+.agent-node.connected-node{
+  opacity:.85;
+  transform:translate(-50%,-50%) scale(1.0);
+}
+
+/* Dimmed node */
+.agent-node.dimmed{
+  opacity:.18;
+  transform:translate(-50%,-50%) scale(.88);
+  pointer-events:none;
+}
+
+.node-pulse{position:absolute;inset:-3px;border-radius:22px;border:2px solid var(--ac);opacity:0;animation:nodePulse 3.5s ease-in-out infinite;}
+.node-icon{width:34px;height:34px;border-radius:50%;background:var(--ac-glow);border:1px solid var(--ac);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:.72rem;font-weight:700;color:var(--ac);letter-spacing:.03em;}
+.node-name{font-size:.76rem;font-weight:700;color:var(--text);margin-bottom:2px;line-height:1.2;}
+.node-role{font-size:.56rem;color:var(--muted);letter-spacing:.03em;}
+.start-badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);padding:2px 10px;border-radius:10px;background:linear-gradient(135deg,#818cf8,#6366f1);font-size:.53rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#fff;white-space:nowrap;box-shadow:0 4px 14px rgba(99,102,241,.5);}
+
+/* ===== SVG LINES ===== */
+.conn-line{transition:stroke-opacity .3s, stroke-width .3s;}
+.conn-line.highlighted{stroke-opacity:.88 !important;stroke-width:2.2 !important;}
+.conn-line.dimmed-line{stroke-opacity:.04 !important;}
+
+/* ===== DETAIL PANEL CONTENT ===== */
+.dp-close{position:absolute;top:0;right:0;width:26px;height:26px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.75rem;color:var(--muted);transition:all .2s;}
+.dp-close:hover{color:var(--text);border-color:var(--border2);}
+
+.dp-back{display:none;align-items:center;gap:6px;font-size:.68rem;color:var(--muted);cursor:pointer;margin-bottom:16px;padding:4px 0;width:fit-content;transition:color .2s;}
+.dp-back:hover{color:var(--text);}
+.dp-back.visible{display:flex;}
+.dp-back-arrow{font-size:.8rem;}
+
+.dp-tag{display:inline-block;padding:2px 10px;border-radius:10px;font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;}
+.dp-name{font-family:'DM Serif Display',serif;font-size:1.5rem;line-height:1.1;color:var(--text);margin-bottom:8px;}
+.dp-purpose{font-size:.77rem;color:var(--muted2);line-height:1.72;margin-bottom:16px;border-left:2px solid;padding-left:12px;}
+.dp-section{font-size:.57rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin:16px 0 8px;}
+.dp-method{font-size:.75rem;color:#cbd5e1;line-height:1.7;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+
+/* Subagents */
+.sub-grid{display:flex;flex-direction:column;gap:7px;}
+.sub-card{padding:11px 13px;border-radius:11px;border:1px solid var(--border);background:var(--surface);cursor:pointer;transition:all .22s;position:relative;overflow:hidden;}
+.sub-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--sc);border-radius:3px 0 0 3px;}
+.sub-card:hover{border-color:var(--sc);background:var(--surface2);transform:translateX(3px);}
+.sub-card-name{font-size:.77rem;font-weight:700;margin-bottom:2px;}
+.sub-card-role{font-size:.61rem;color:var(--muted);margin-bottom:5px;}
+.sub-card-preview{font-size:.69rem;color:var(--muted2);line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.sub-hint{font-size:.59rem;color:var(--muted);margin-top:5px;opacity:.65;}
+
+/* Sub detail */
+.sub-detail{display:flex;flex-direction:column;gap:0;}
+.sub-io{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+.sub-io-box{padding:10px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--border);}
+.sub-io-label{font-size:.55rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.sub-io-val{font-size:.69rem;color:#cbd5e1;line-height:1.55;}
+
+/* Collaborators */
+.collab-list{display:flex;flex-direction:column;gap:6px;}
+.collab-item{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:10px;background:var(--surface);border:1px solid var(--border);cursor:pointer;transition:all .2s;}
+.collab-item:hover{border-color:var(--cc);background:var(--surface2);}
+.collab-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.collab-name{font-size:.75rem;font-weight:600;color:var(--text);}
+.collab-label{font-size:.62rem;color:var(--muted);margin-left:auto;}
+.collab-arrow{font-size:.7rem;color:var(--muted);flex-shrink:0;}
+
+/* Relationship panel */
+.rel-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.rel-dot{width:10px;height:10px;border-radius:50%;}
+.rel-connector{width:22px;height:2px;background:var(--border2);}
+.rel-title{font-family:'DM Serif Display',serif;font-size:1.15rem;color:var(--text);line-height:1.2;}
+.rel-summary{font-size:.77rem;color:var(--muted2);line-height:1.72;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:14px;}
+.rel-flow{display:flex;flex-direction:column;gap:6px;}
+.rel-step{display:flex;gap:10px;padding:9px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--border);font-size:.71rem;color:#cbd5e1;line-height:1.55;}
+.rel-step-num{font-weight:700;flex-shrink:0;padding-top:1px;}
+.rel-data-badge{display:inline-block;padding:1px 7px;border-radius:6px;font-size:.59rem;font-weight:600;margin-top:5px;}
+
+/* Outputs */
+.output-list{display:flex;flex-direction:column;gap:5px;}
+.output-item{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;background:var(--surface);border:1px solid var(--border);font-size:.71rem;color:#cbd5e1;}
+.output-arrow{font-size:.78rem;flex-shrink:0;}
+.dp-link{display:block;margin-top:14px;padding:8px 14px;border-radius:10px;border:1px solid;font-size:.7rem;font-weight:600;text-decoration:none;text-align:center;transition:all .2s;letter-spacing:.03em;}
+.dp-link:hover{filter:brightness(1.18);}
+
+/* ===== DATA KITCHEN ===== */
+#kitchen-section{position:relative;z-index:5;padding:70px 40px 80px;max-width:960px;margin:0 auto;}
+.kitchen-intro{text-align:center;max-width:560px;margin:0 auto 36px;font-size:.84rem;color:var(--muted2);line-height:1.75;}
+.kitchen-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;}
+.store-card{padding:20px;border-radius:18px;border:1px solid var(--border);background:rgba(8,12,28,.55);backdrop-filter:blur(20px);cursor:pointer;transition:all .3s cubic-bezier(.16,1,.3,1);position:relative;overflow:hidden;}
+.store-card::before{content:'';position:absolute;inset:0;border-radius:18px;background:radial-gradient(ellipse at top left,var(--sc-glow) 0%,transparent 65%);pointer-events:none;}
+.store-card:hover{border-color:var(--sc);transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.4),0 0 28px var(--sc-glow);}
+.store-card.active-store{border-color:var(--sc);box-shadow:0 0 40px var(--sc-glow),0 20px 50px rgba(0,0,0,.5);}
+.store-name{font-family:'DM Serif Display',serif;font-size:.95rem;color:var(--text);margin-bottom:3px;}
+.store-file{font-size:.6rem;color:var(--sc);font-weight:600;letter-spacing:.06em;margin-bottom:10px;}
+.store-desc{font-size:.71rem;color:var(--muted2);line-height:1.6;margin-bottom:12px;}
+.store-rw{display:flex;gap:8px;margin-bottom:7px;}
+.store-rw-label{font-size:.55rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding-top:2px;min-width:38px;}
+.store-rw-agents{display:flex;flex-wrap:wrap;gap:4px;}
+.store-agent-tag{padding:2px 8px;border-radius:7px;font-size:.58rem;font-weight:600;border:1px solid;letter-spacing:.03em;}
+
+/* ===== FOOTER ===== */
+#site-footer{text-align:center;font-size:.6rem;color:var(--muted);padding:20px;border-top:1px solid var(--border);position:relative;z-index:5;}
+
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px;}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:700px){
+  #flow-wrapper{flex-direction:column;}
+  #diagram-pane,#diagram-pane.panel-open{flex:none;width:100%;}
+  #detail-pane,#detail-pane.open{flex:none;width:100%;max-width:100%;}
+  #detail-inner{padding:20px 16px 32px;}
+}
+</style>
+</head>
+<body>
+
+<div class="o1 orb"></div>
+<div class="o2 orb"></div>
+<div class="o3 orb"></div>
+
+<div id="header">
+  <div class="header-eyebrow">Personal AI Infrastructure</div>
+  <h1 class="header-title">The Agent Ecosystem</h1>
+  <p class="header-sub">Six specialized agents operating in a continuous loop. Each produces data that sharpens every agent that follows. Click any agent to explore it in depth.</p>
+  <div class="header-meta">
+    <span class="hmeta-pill">6 Live Agents</span>
+    <span class="hmeta-pill">25+ Subagents</span>
+    <span class="hmeta-pill">Self-Calibrating</span>
+    <span class="hmeta-pill">Zero Manual Handoffs</span>
+  </div>
+</div>
+
+<div id="flow-section" style="margin-top:50px;">
+  <div class="section-label">Workflow Circuit</div>
+  <div id="flow-wrapper">
+    <div id="diagram-pane">
+      <div id="flow-canvas">
+        <svg id="flow-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div id="nodes-container"></div>
+      </div>
+    </div>
+    <div id="detail-pane">
+      <div id="detail-inner"></div>
+    </div>
+  </div>
+</div>
+
+<div style="height:60px;"></div>
+<div class="divider"></div>
+
+<div id="kitchen-section">
+  <div class="section-label">Data Kitchen</div>
+  <p class="kitchen-intro">Every agent reads and writes to shared data stores. This is how the system compounds over time: each weekly run produces richer data for the next. Click any store to see which agents it connects.</p>
+  <div class="kitchen-grid" id="kitchen-grid"></div>
+</div>
+
+<div class="divider"></div>
+<footer id="site-footer">Built by Bob the Builder · 2026-04-23 &nbsp;|&nbsp; Logan Matson AI Infrastructure</footer>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const AGENTS = [
+  {
+    id:"optimize-week", name:"Optimize Week", tag:"The Orchestrator", abbr:"OW",
+    color:"#818cf8", glow:"rgba(129,140,248,.22)", startHere:true, angle:270,
+    purpose:"Plans the entire week in a single autonomous pass — training schedule, meal plan, groceries, and seizure risk assessment — coordinating all five downstream agents with zero manual handoffs.",
+    method:"Runs seven sequential phases: auto-detects new Whoop data and fires the Retrospective Validator if new data exists, places training on Google Calendar via the Calendar agent, runs the Neurologist risk forecast with a mandatory human confirmation pause, executes the full Gordon Ramsay meal pipeline, sends the grocery list by email, and writes a consolidated status report.",
+    outputs:["GCal training events","Meal PWA (tap-to-done)","Grocery Reminders list","Grocery email via GWS","7-day seizure risk forecast","Updated agent-weights.json","validator-history.json entry","Final consolidated weekly report"],
+    github:null,
+    collaborators:[
+      {id:"whoop-report",label:"spawns monthly analysis"},
+      {id:"neurologist-agent",label:"feeds strain map"},
+      {id:"gordon-ramsay",label:"passes strain and risk overrides"},
+      {id:"calendar",label:"runs inline scheduling"},
+      {id:"gws-agent",label:"sends grocery email"}
+    ],
+    subagents:[
+      {name:"Monthly Brain",role:"Phase 0 — Auto-Detector",color:"#a5b4fc",
+       desc:"Scans the Whoop Performance folder for raw CSVs without a corresponding output directory. If new data exists, spawns the full 7-subagent Whoop Report pipeline and waits for completion. Loads the resulting WHOOP_INSIGHTS object for downstream phases. If no new data, prints a notice and runs on cached defaults.",
+       input:"Whoop Performance folder scan",output:"WHOOP_INSIGHTS object (or null)"},
+      {name:"Retrospective Validator",role:"Phase 0.5 — Self-Calibration Engine",color:"#a78bfa",
+       desc:"Fires only when Phase 0 detects new Whoop data. Compares the prior month's agent forecasts against actual biometrics — Recovery %, HRV, Day Strain, Sleep %, and 12-signal journal entries. Updates agent-weights.json with a maximum 15% shift per factor per cycle, hard-bounded between 0.5 and 2.0. Appends a full accuracy snapshot to validator-history.json.",
+       input:"seizure-risk.json, meal-annotations.json, pipeline-state.json, physiological_cycles.csv, agent-weights.json",
+       output:"Updated agent-weights.json, new validator-history.json entry"},
+      {name:"Calendar Engine",role:"Phase 2 — Training Placer",color:"#c4b5fd",
+       desc:"Applies the PPL 3-on-1-off rotation against existing GCal commitments. Non-negotiables: Saturday is always the long run (no lifting), Friday is never Legs. Reads all existing calendar events, shifts training to avoid conflicts, defaults sessions to 9:30 AM. Creates events via GCal MCP and builds the strain map for Gordon Ramsay and the Neurologist.",
+       input:"GCal events, ATHLETE.md, workout-plan.md",output:"Strain map, GCal training events"},
+      {name:"Neurologist Gate",role:"Phase 2.5 — Risk Gatekeeper",color:"#f87171",
+       desc:"Runs the seizure risk forecast immediately after training is placed and before meals are finalized. The pipeline pauses at this step. Logan types 'proceed' to accept all overrides or specifies individual day adjustments. Can reduce training intensity targets and swap high-inflammation meal choices. Produces GREEN, YELLOW, RED per day.",
+       input:"Strain map, seizure-risk.json, WHOOP_INSIGHTS",output:"Risk forecast, Calendar and Gordon Ramsay override instructions"},
+      {name:"Gordon Ramsay Inline",role:"Phase 3 — Meal Pipeline",color:"#fb923c",
+       desc:"Runs the full Gordon Ramsay skill inline without re-invoking it as a separate process. Reuses all Phase 1 reads — pantry, meal log, athlete profile — without re-reading. Receives the strain map from Phase 2 and Neurologist overrides from Phase 2.5. Executes all nine outputs in sequence.",
+       input:"Strain map, neurologist overrides, pre-loaded context",output:"All nine Gordon Ramsay outputs"},
+      {name:"GWS Sender",role:"Phase 4 — Grocery Email",color:"#34d399",
+       desc:"Checks if the gws CLI is available and the OAuth token is valid before attempting. If both pass, sends the grocery list as a formatted email. Silently skips if GWS is unavailable — the Reminders list already exists from Phase 3. Prevents mid-pipeline failures caused by token expiry.",
+       input:"Grocery list from Phase 3",output:"Sent email or silent skip with logged reason"}
+    ]
+  },
+  {
+    id:"whoop-report", name:"Whoop Report", tag:"The Analyst", abbr:"WR",
+    color:"#22d3ee", glow:"rgba(34,211,238,.2)", startHere:false, angle:330,
+    purpose:"Transforms raw Whoop CSV exports into a 13-page performance brief and an interactive scorecard, orchestrating seven specialized subagents in a parallel-and-sequential dispatch pattern.",
+    method:"A solo data cleaner runs first to normalize all four raw CSV files before any analysis begins. Four analysis subagents then run in parallel. The orchestrator merges their JSON results, then dispatches a PDF generator and scorecard builder simultaneously in a final parallel phase.",
+    outputs:["analyst-brief.pdf (13 pages)","scorecard.html (interactive)","analysis-results.json (merged)","5 cleaned CSV files in /cleaned"],
+    github:"https://loganmatson.github.io/health-agent-ecosystem",
+    collaborators:[
+      {id:"optimize-week",label:"spawned by Phase 0"},
+      {id:"gordon-ramsay",label:"reads meal-annotations.json"}
+    ],
+    subagents:[
+      {name:"Data Cleaner",role:"Subagent 1 — Solo First",color:"#67e8f9",
+       desc:"Normalizes all four raw CSVs before any analysis begins. Flags anomaly rows: missing Recovery + HRV + Sleep simultaneously, RHR outside 30-100 bpm, HRV outside 10-300 ms, sleep under 30 minutes for non-nap records. Pivots journal_entries.csv into a daily boolean matrix. Must complete before Subagents 2 through 5 start.",
+       input:"physiological_cycles.csv, sleeps.csv, workouts.csv, journal_entries.csv",output:"whoop-clean.csv, whoop-summary.csv, whoop-workouts-clean.csv, whoop-journal-clean.csv"},
+      {name:"Stats Agent",role:"Subagent 2 — Parallel",color:"#a5f3fc",
+       desc:"Descriptive statistics and weekly averages for 15 metrics: Recovery %, RHR, HRV, Skin Temp, SpO2, Day Strain, Energy Burned, Max HR, Avg HR, Sleep Performance %, Duration, Deep Sleep %, REM %, Efficiency %, Consistency %. If a period comparison cutoff is set, runs separately for Period 1 and Period 2 with deltas.",
+       input:"whoop-clean.csv",output:"analysis-results-descriptive.json"},
+      {name:"Regression Agent",role:"Subagent 3 — Parallel",color:"#7dd3fc",
+       desc:"OLS multivariate regression: Recovery ~ Sleep Duration + Deep Sleep + REM + Efficiency + Sleep Onset Hour + Prior-day Strain. Reports R-squared, adjusted R-squared, F-statistic, and per-predictor beta, standard error, t-stat, and p-value. Requires a minimum of 30 complete rows.",
+       input:"whoop-clean.csv",output:"analysis-results-regression.json"},
+      {name:"Dose-Response Agent",role:"Subagent 4 — Parallel",color:"#93c5fd",
+       desc:"Fits a quadratic dose-response curve: Recovery = a + b*Strain + c*Strain-squared. If the c coefficient is significant (p < 0.05), confirms an inverted-U response and reports the optimal strain zone. Compares modalities — running vs. lifting vs. rest — using Cohen's d with a minimum of 8 days per group.",
+       input:"whoop-clean.csv, whoop-workouts-clean.csv",output:"analysis-results-dose-response.json"},
+      {name:"Interventions Agent",role:"Subagent 5 — Parallel",color:"#bfdbfe",
+       desc:"Behavioral intervention analysis with a hard minimum of 30 yes-days and 30 no-days per behavior. Compares Recovery %, HRV, Deep Sleep, and Sleep Performance. Reports Cohen's d and p-value ranked by absolute effect size. Also runs a 10x10 Pearson correlation matrix and a weekly trajectory narrative.",
+       input:"whoop-clean.csv, whoop-journal-clean.csv",output:"analysis-results-interventions.json"},
+      {name:"PDF Generator",role:"Subagent 6 — Final Parallel",color:"#bae6fd",
+       desc:"13-page matplotlib PDF in coach voice. Forest green accent (#2a5c45), letter size. Strict no-overlap rule: charts in top 60% of each page, interpretation text in bottom 30% with a gap between. Tables use dedicated axes, never overlaid on charts.",
+       input:"analysis-results.json (merged)",output:"analyst-brief-{month}.pdf"},
+      {name:"Scorecard Builder",role:"Subagent 7 — Final Parallel",color:"#e0f9ff",
+       desc:"Updates only the DATA block of the dark-themed interactive HTML scorecard — the visual design is never touched. Updates five animated metric bars, reads the prior month's scorecard for trend arrows, and sets the one-sentence monthly verdict.",
+       input:"analysis-results.json, prior month scorecard HTML",output:"scorecard-{month}.html"}
+    ]
+  },
+  {
+    id:"gordon-ramsay", name:"Gordon Ramsay", tag:"The Chef", abbr:"GR",
+    color:"#fb923c", glow:"rgba(251,146,60,.2)", startHere:false, angle:30,
+    purpose:"Plans a full week of meals without asking a single question — reading the training strain map, applying protein-tier matching, and generating nine outputs including a tap-to-done PWA and a machine-readable JSON bridge for Whoop Report.",
+    method:"Reads the strain map from Calendar and risk overrides from the Neurologist. Applies a six-step placement algorithm: selects entrees avoiding three-week repeats, ranks by protein tier, assigns Tier 1 protein to peak days, derives a cook schedule, upsizes sides on demanding days, and validates before executing any output.",
+    outputs:["Meal plan table in chat","Grocery list in chat","Per-day macro snapshot","Apple Note (HTML-formatted)","Reminders grocery list","meal-log.md entry","meal-annotations.json (data bridge)","Tap-to-done meal PWA","GCal cook night events"],
+    github:null,
+    collaborators:[
+      {id:"optimize-week",label:"receives strain map and overrides"},
+      {id:"neurologist-agent",label:"receives meal swap overrides"},
+      {id:"whoop-report",label:"writes meal-annotations.json"}
+    ],
+    subagents:[
+      {name:"Strain Placer",role:"Phase 2 — Six-Step Algorithm",color:"#fdba74",
+       desc:"Step 1: Select three entrees avoiding three-week repeats. Step 2: Rank by protein tier — Tier 1 is ~80g (Salmon, Chicken Breast, Ribeye), Tier 2 is ~65g (Thighs, Turkey, Beef), Tier 3 is ~55g (Shaved Steak). Step 3: Assign Tier 1 to PEAK, Tier 2 to HIGH. Step 4: Derive cook schedule from first fresh appearance. Step 5: PEAK gets 2x sides, HIGH gets 1.5x at dinner. Step 6: Validate — no same entree at lunch and dinner same day.",
+       input:"Strain map, food-pantry.md, meal-log.md history",output:"Week meal matrix, cook schedule"},
+      {name:"Annotations Bridge",role:"Output F2 — JSON Handoff",color:"#fed7aa",
+       desc:"The machine-readable bridge between Gordon Ramsay and Whoop Report. Writes meal-annotations.json with per-week entries: daily training load, entree name, protein tier, protein grams, and side multiplier. Whoop Report reads this directly for nutrition-to-recovery correlation without markdown parsing.",
+       input:"Week meal matrix, strain map",output:"New entry appended to meal-annotations.json"},
+      {name:"PWA Builder",role:"Output G — Tap-to-Done Interface",color:"#ffedd5",
+       desc:"Token-efficient: reads only the DATA section of the most recent PWA file (~130 lines, searches for 'const WEEK =') instead of the full 500-line file. Replaces only WEEK, GROCERY, STATS, and GENERATED constants. Adds per-day strain badge pills — PEAK in red, HIGH in orange, MODERATE in yellow, LOW in green.",
+       input:"Week matrix, most recent PWA DATA block",output:"meal-plan-{date}.html (tap-to-done PWA)"},
+      {name:"Notes and Reminders",role:"Outputs D and E",color:"#fef3c7",
+       desc:"Writes an HTML-formatted Apple Note via AppleScript. Creates one Reminders item per grocery ingredient. Always deletes any existing note with the same name before writing to prevent duplicates. Grocery list structured by category, then item, then quantity.",
+       input:"Meal plan, grocery list",output:"Apple Note, Reminders list"}
+    ]
+  },
+  {
+    id:"neurologist-agent", name:"Neurologist", tag:"The Risk Guard", abbr:"NL",
+    color:"#f43f5e", glow:"rgba(244,63,94,.2)", startHere:false, angle:90,
+    purpose:"A self-calibrating seizure risk forecaster that produces a day-by-day GREEN, YELLOW, or RED assessment and generates concrete override instructions for Calendar and Gordon Ramsay.",
+    method:"Reads agent-weights.json recalibrated monthly by the Retrospective Validator. Scores seven risk factors with weight-adjusted thresholds. Applies protective credits only for streaks of three or more consecutive days. Two yellows produce an overall yellow; if one involves alcohol, dizziness, or high-tier travel, it escalates to red. The pipeline pauses for Logan's explicit confirmation before overrides are applied.",
+    outputs:["7-day risk forecast (GREEN/YELLOW/RED)","Calendar deload instructions","Gordon Ramsay meal swap instructions","GCal alert events on yellow and red days","New entry in seizure-risk.json"],
+    github:null,
+    collaborators:[
+      {id:"optimize-week",label:"embedded as Phase 2.5"},
+      {id:"gordon-ramsay",label:"sends meal swap overrides"},
+      {id:"calendar",label:"sends deload overrides"}
+    ],
+    subagents:[
+      {name:"Risk Scorer",role:"Core Engine — 7 Weight-Adjusted Factors",color:"#fb7185",
+       desc:"Scores seven factors using multipliers from agent-weights.json: Physical Strain (strain_threshold), Sleep and Fatigue (sleep_fatigue_threshold), Alcohol (alcohol_weight — highest single factor, never downgraded by credits), Travel (tiered pre-event windows), Schedule Overload (6-hour threshold), Nutritional Signals (amplifier only, no dedicated weight), Neurological Signals (dizziness and mental stability). Compounding rule applied after individual scores.",
+       input:"neurologist-signals.json (30-day window), agent-weights.json, strain map",output:"Day-by-day risk levels with per-factor breakdown"},
+      {name:"Override Generator",role:"Downstream Influence Engine",color:"#fda4af",
+       desc:"Translates the risk forecast into concrete overrides for Calendar and Gordon Ramsay. YELLOW Tuesday sends 'reduce Push strain target 15%' to Calendar. RED Saturday sends 'swap Ribeye for Chicken Breast, reduce side to 1x' to Gordon Ramsay. Any yellow or red day creates a GCal alert event. Logan approves or modifies each override before application.",
+       input:"Day-by-day risk forecast",output:"Calendar overrides, Gordon Ramsay overrides, GCal alert events"},
+      {name:"Journal Reader",role:"Data Ingestion — 30-Day Signal History",color:"#fecdd3",
+       desc:"Reads 12 binary signals per day: Hydrated, Avoided processed foods, Fatigue, Muscle soreness, Stress elevated, Dizzy or lightheaded, Mental stability good, Alcohol, Meditated, Outdoors, Electrolytes, Feeling sick. Populated monthly from Whoop CSV exports — 79+ days of history as of April 2026. Uses a 30-day window to smooth out single heavy or rest weeks.",
+       input:"Whoop journal CSV or neurologist-signals.json",output:"30-day signal baseline for Risk Scorer"}
+    ]
+  },
+  {
+    id:"gws-agent", name:"GWS Agent", tag:"The Communicator", abbr:"GWS",
+    color:"#34d399", glow:"rgba(52,211,153,.2)", startHere:false, angle:150,
+    purpose:"Orchestrates multi-service Google Workspace workflows. Primary mission: a three-agent morning digest pipeline that delivers a personalized AI and career brief by email every weekday morning.",
+    method:"An orchestrator reads 30 days of digest memory to compute a rotation counter and extract past coverage. A research agent and content writer run in parallel. The orchestrator curates the top three stories, assembles a formatted HTML email, sends it via the Gmail API, and appends the session to the rolling memory file.",
+    outputs:["Daily HTML email to Logan","Rolling digest-memory.md entry (30-day window)"],
+    github:null,
+    collaborators:[
+      {id:"optimize-week",label:"called in Phase 4 for grocery email"}
+    ],
+    subagents:[
+      {name:"Research Agent",role:"Agent A — Sonnet Model",color:"#6ee7b7",
+       desc:"Finds four real, recent AI news stories: two from the past 14 days and two from the past four days. Hard rules: all URLs must be real, no two stories from the same publication, no topics already covered in the 30-day digest memory. Falls back to direct URL fetching from TechCrunch, The Verge, Politico, and Wired if web search is unavailable.",
+       input:"digest-memory.md 30-day context, web search",output:"4 story candidates with headline, real URL, 2-sentence summary"},
+      {name:"Content Writer",role:"Agent B — Sonnet Model",color:"#a7f3d0",
+       desc:"Generates five email sections without re-reading digest-memory — context is passed directly from Phase 0 to save tokens. Sections: Career Story with a term-to-remember, Weekly Market Pulse, AI Practice Takeaways (two Claude tips and one concrete action), the rotation-scheduled section, and two motivational quotes. Never repeats covered topics.",
+       input:"30-day context string from orchestrator",output:"Five formatted email content sections"},
+      {name:"Email Sender",role:"Phase 2 — Orchestrator and Sender",color:"#d1fae5",
+       desc:"Selects the best three of four research stories — recency wins ties, no two from the same publication. Assembles the full HTML email with colored left-border cards and a clean serif font. Sends via the gws CLI Gmail API. Appends today's entry to digest-memory.md.",
+       input:"Three curated stories, five content sections",output:"Sent HTML email, updated digest-memory.md"}
+    ]
+  },
+  {
+    id:"calendar", name:"Calendar", tag:"The Scheduler", abbr:"CAL",
+    color:"#a78bfa", glow:"rgba(167,139,250,.2)", startHere:false, angle:210,
+    purpose:"Places Logan's training week on Google Calendar using the PPL rotation, enforces non-negotiable scheduling constraints, and produces the strain map that all downstream agents consume first.",
+    method:"Reads all existing GCal commitments for the week. Anchors Saturday as the long run and Friday as no-Legs. Fills remaining slots with the 3-on-1-off Push, Pull, Legs rotation, shifting sessions to avoid conflicts. Creates one GCal event per training day with the strain target in the event description.",
+    outputs:["GCal training events (one per active day)","Strain map for Gordon Ramsay and Neurologist","Training week HTML summary"],
+    github:null,
+    collaborators:[
+      {id:"optimize-week",label:"runs inline as Phase 2"},
+      {id:"gordon-ramsay",label:"delivers strain map"},
+      {id:"neurologist-agent",label:"receives deload overrides"}
+    ],
+    subagents:[
+      {name:"Schedule Builder",role:"Core Scheduling Logic",color:"#c4b5fd",
+       desc:"Non-negotiable anchors: Saturday is always the long run (no lifting, ever). Friday is never Legs — if Legs falls on Friday in the 3-on-1-off cycle, it shifts to the following Monday. Double days place the lift first at 9:30 AM and the run after, with a logged warning. Sunday Legs only runs if Whoop recovery is 67% or higher.",
+       input:"GCal events, ATHLETE.md, current rotation position",output:"7-day schedule, daily strain map (PEAK/HIGH/MODERATE/LOW/REST)"},
+      {name:"GCal Pusher",role:"Step 6 — Optional Event Creation",color:"#ddd6fe",
+       desc:"Creates one GCal event per training day with the strain target in the event description. Uses the gcal_create_event MCP tool with the training calendar ID from Phase 0. Falls back to Apple Calendar via osascript if GCal MCP is unavailable. Never fails hard or blocks the pipeline.",
+       input:"Confirmed schedule, training calendar ID",output:"GCal events, or Apple Calendar events as fallback"}
+    ]
+  }
+];
+
+const CONNECTIONS = [
+  {from:"optimize-week",to:"whoop-report",label:"spawns analysis"},
+  {from:"optimize-week",to:"neurologist-agent",label:"feeds strain map"},
+  {from:"optimize-week",to:"gordon-ramsay",label:"strain + risk overrides"},
+  {from:"optimize-week",to:"gws-agent",label:"grocery email trigger"},
+  {from:"optimize-week",to:"calendar",label:"inline scheduling"},
+  {from:"gordon-ramsay",to:"whoop-report",label:"meal-annotations.json"},
+  {from:"neurologist-agent",to:"gordon-ramsay",label:"meal overrides"},
+  {from:"neurologist-agent",to:"calendar",label:"deload overrides"},
+  {from:"calendar",to:"gordon-ramsay",label:"strain map"},
+  {from:"calendar",to:"neurologist-agent",label:"strain input"}
+];
+
+const RELATIONSHIPS = {
+  "calendar_neurologist-agent":{
+    summary:"Calendar and Neurologist share a two-way dependency. Calendar produces the strain map that is the Neurologist's primary physical input. In return, the Neurologist sends deload override instructions back to Calendar when a day's risk level is too high.",
+    steps:[
+      {num:"1",text:"Calendar reads GCal commitments and builds the week's training schedule.",data:null},
+      {num:"2",text:"Calendar writes a strain map: each day tagged PEAK, HIGH, MODERATE, LOW, or REST with a numeric strain target.",data:"Strain map"},
+      {num:"3",text:"Neurologist receives the strain map and scores Physical Strain as one of its seven weighted risk factors.",data:null},
+      {num:"4",text:"If a training day scores YELLOW, Neurologist instructs Calendar to reduce that day's strain target by 15%.",data:"Deload override"},
+      {num:"5",text:"If a training day scores RED, Neurologist instructs Calendar to replace the session with a REST or active recovery day.",data:"Deload override"},
+      {num:"6",text:"Calendar applies accepted overrides and creates GCal events with updated targets.",data:null}
+    ]
+  },
+  "gordon-ramsay_neurologist-agent":{
+    summary:"The Neurologist translates its risk forecast into specific meal swap instructions. High-inflammation proteins are replaced with lower-risk alternatives on elevated-risk days. Gordon Ramsay applies these swaps before executing any of its nine outputs.",
+    steps:[
+      {num:"1",text:"Neurologist completes its seven-factor risk assessment and identifies YELLOW and RED days.",data:null},
+      {num:"2",text:"For each elevated-risk day, Neurologist generates a meal swap override: protein type, replacement, and macro adjustment.",data:"Meal swap overrides"},
+      {num:"3",text:"Gordon Ramsay receives the override list before executing its strain-placement algorithm.",data:null},
+      {num:"4",text:"Gordon Ramsay applies swaps — for example, Ribeye to Chicken Breast on a red day, or reducing the side multiplier from 2x to 1x on a yellow day.",data:null},
+      {num:"5",text:"The adjusted meal plan propagates through all nine outputs.",data:"All 9 outputs"}
+    ]
+  },
+  "gordon-ramsay_whoop-report":{
+    summary:"Gordon Ramsay and Whoop Report share the most important data handoff in the ecosystem: meal-annotations.json. Gordon Ramsay writes a machine-readable record of every meal — protein tier, grams, training load, side size. Whoop Report reads it to correlate nutrition decisions with next-day recovery outcomes.",
+    steps:[
+      {num:"1",text:"Gordon Ramsay finalizes the week's meal matrix after applying all overrides.",data:null},
+      {num:"2",text:"The Annotations Bridge subagent writes one entry per week to meal-annotations.json: training load, entree name, protein tier, protein grams, and side multiplier.",data:"meal-annotations.json"},
+      {num:"3",text:"Whoop Report's Interventions Agent reads meal-annotations.json directly — no markdown parsing required.",data:null},
+      {num:"4",text:"The Interventions Agent correlates protein tier against next-day Recovery %, HRV, and Deep Sleep %, ranked by Cohen's d.",data:"analysis-results-interventions.json"},
+      {num:"5",text:"Findings feed back into optimize-week the following month via WHOOP_INSIGHTS, informing protein tier priority on peak-strain days.",data:"WHOOP_INSIGHTS"}
+    ]
+  },
+  "calendar_gordon-ramsay":{
+    summary:"Calendar and Gordon Ramsay share the strain map — the foundational output of scheduling that drives the entire meal planning algorithm. Without it, Gordon Ramsay cannot determine which days need high-protein Tier 1 entrees.",
+    steps:[
+      {num:"1",text:"Calendar reads GCal, anchors the long run, and builds the weekly training schedule.",data:null},
+      {num:"2",text:"Calendar writes the strain map: each day labeled PEAK, HIGH, MODERATE, LOW, or REST.",data:"Strain map"},
+      {num:"3",text:"Gordon Ramsay receives the strain map as its first input in Phase 0.",data:null},
+      {num:"4",text:"The Strain Placer assigns Tier 1 proteins (80g) to PEAK days, Tier 2 (65g) to HIGH days.",data:null},
+      {num:"5",text:"Side upsizing applied: PEAK days get 2x sides, HIGH days get 1.5x sides at dinner only.",data:"Week meal matrix"}
+    ]
+  },
+  "optimize-week_calendar":{
+    summary:"Optimize Week runs Calendar inline as Phase 2 — not as a separate spawned agent. Optimize Week controls the inputs, confirms the outputs, and passes the resulting strain map forward with no manual handoff.",
+    steps:[
+      {num:"1",text:"Optimize Week Phase 1 reads all context in parallel: pantry, meal log, athlete profile, GCal events, and agent-weights.json.",data:null},
+      {num:"2",text:"Optimize Week Phase 2 invokes Calendar logic inline, passing the week's constraints.",data:null},
+      {num:"3",text:"Calendar builds the schedule and strain map, creates GCal events, and returns the strain map to the orchestrator.",data:"Strain map, GCal events"},
+      {num:"4",text:"Optimize Week passes the strain map forward to Phase 2.5 and Phase 3 without re-reading.",data:null}
+    ]
+  },
+  "neurologist-agent_optimize-week":{
+    summary:"The Neurologist runs as Phase 2.5 inside Optimize Week — the only phase in the entire pipeline that requires a human pause. Optimize Week feeds it the strain map and receives back a risk-adjusted override set that reshapes both the training calendar and the meal plan.",
+    steps:[
+      {num:"1",text:"Optimize Week completes Phase 2 (Calendar) and holds the strain map in memory.",data:"Strain map"},
+      {num:"2",text:"Optimize Week invokes the Neurologist inline with the strain map as input.",data:null},
+      {num:"3",text:"Neurologist scores seven risk factors and generates GREEN, YELLOW, and RED levels per day.",data:"Risk forecast"},
+      {num:"4",text:"The pipeline pauses. Logan reviews the forecast and types 'proceed' or specifies adjustments.",data:null},
+      {num:"5",text:"Neurologist sends override instructions to Calendar (deload) and Gordon Ramsay (meal swaps).",data:"Override instructions"},
+      {num:"6",text:"Optimize Week resumes Phase 3 with overrides applied.",data:null}
+    ]
+  },
+  "gordon-ramsay_optimize-week":{
+    summary:"Optimize Week runs Gordon Ramsay as Phase 3 — inline, without spawning a separate agent. The orchestrator passes the strain map and Neurologist overrides directly, and Gordon Ramsay executes all nine outputs without re-reading any files already loaded in Phase 1.",
+    steps:[
+      {num:"1",text:"Optimize Week Phase 1 pre-loads pantry, meal log, and athlete profile. These are reused in Phase 3.",data:null},
+      {num:"2",text:"After Phase 2.5, Optimize Week passes the strain map and override list to Gordon Ramsay.",data:"Strain map, overrides"},
+      {num:"3",text:"Gordon Ramsay executes all nine outputs in sequence.",data:"9 outputs"},
+      {num:"4",text:"Optimize Week receives confirmation and moves to Phase 4 (GWS grocery email).",data:null}
+    ]
+  },
+  "gws-agent_optimize-week":{
+    summary:"Optimize Week calls GWS Agent in Phase 4 for a single purpose: sending the grocery list by email. GWS Agent's full morning digest pipeline is independent, but Optimize Week can invoke it as a lightweight email sender.",
+    steps:[
+      {num:"1",text:"Gordon Ramsay completes Phase 3 and writes the grocery list to Reminders.",data:"Grocery list"},
+      {num:"2",text:"Optimize Week Phase 4 checks if the gws CLI is available and the OAuth token is valid.",data:null},
+      {num:"3",text:"If both pass, Optimize Week invokes GWS Agent's email sender with the grocery list as payload.",data:null},
+      {num:"4",text:"GWS Agent formats and sends a clean HTML email. If the check fails, Phase 4 is silently skipped.",data:"Sent email or silent skip"}
+    ]
+  },
+  "optimize-week_whoop-report":{
+    summary:"Optimize Week spawns the full Whoop Report pipeline in Phase 0 when it detects new biometric data. This is the only inter-agent spawn in the ecosystem — all other calls run inline. The resulting WHOOP_INSIGHTS informs training placement and meal decisions for the current week.",
+    steps:[
+      {num:"1",text:"Optimize Week Phase 0 scans the Whoop Performance folder for raw CSVs without a corresponding output directory.",data:null},
+      {num:"2",text:"If new data is found, Optimize Week spawns Whoop Report as a separate agent and waits for completion.",data:null},
+      {num:"3",text:"Whoop Report runs its full seven-subagent pipeline and writes the analyst brief, scorecard, and analysis-results.json.",data:"analyst-brief.pdf, scorecard.html"},
+      {num:"4",text:"Optimize Week reads WHOOP_INSIGHTS from the completed run.",data:"WHOOP_INSIGHTS"},
+      {num:"5",text:"Training placement (Phase 2) and meal planning (Phase 3) are both informed by recovery trends from the report.",data:null}
+    ]
+  }
+};
+
+const DATA_STORES = [
+  {id:"pipeline-state",name:"Pipeline State",file:"pipeline-state.json",color:"#818cf8",glow:"rgba(129,140,248,.14)",desc:"Universal state file for all five pipelines. Records which agent ran last, what it produced, and what comes next. Enables the Loop Status Dashboard and prevents mid-pipeline data loss.",writers:["optimize-week","whoop-report","gordon-ramsay"],readers:["optimize-week","neurologist-agent"]},
+  {id:"meal-annotations",name:"Meal Annotations",file:"meal-annotations.json",color:"#fb923c",glow:"rgba(251,146,60,.14)",desc:"Machine-readable bridge between the Chef and the Analyst. Records daily training load, entree name, protein tier, protein grams, and side multiplier for every meal slot. Whoop Report reads this directly for nutrition-to-recovery correlation.",writers:["gordon-ramsay"],readers:["whoop-report","neurologist-agent"]},
+  {id:"agent-weights",name:"Agent Weights",file:"agent-weights.json",color:"#f43f5e",glow:"rgba(244,63,94,.14)",desc:"The self-calibration layer. Stores per-factor multipliers for each agent, recalibrated monthly by the Retrospective Validator. Each factor shifts a maximum of 15% per cycle, bounded between 0.5 and 2.0.",writers:["optimize-week"],readers:["neurologist-agent","gordon-ramsay","calendar"]},
+  {id:"neurologist-signals",name:"Neurologist Signals",file:"neurologist-signals.json",color:"#22d3ee",glow:"rgba(34,211,238,.14)",desc:"79+ days of binary journal signal history — 12 signals per day including hydration, stress, alcohol, dizziness, and sleep quality. Populated monthly from Whoop CSV exports. The Neurologist reads the most recent 30 days as its scoring baseline.",writers:["whoop-report"],readers:["neurologist-agent"]}
+];
+
+// ============================================================
+// STATE
+// ============================================================
+const ST = { expandedAgent:null, highlightedStore:null };
+
+// ============================================================
+// GEOMETRY — recomputes every time the pane resizes
+// ============================================================
+function getPositions() {
+  const canvas = document.getElementById('flow-canvas');
+  const W = canvas.offsetWidth, H = canvas.offsetHeight;
+  const cx = W/2, cy = H/2;
+  const rx = W * 0.36, ry = H * 0.38;
+  const map = {};
+  AGENTS.forEach(ag => {
+    const rad = (ag.angle - 90) * Math.PI / 180;
+    map[ag.id] = { x: cx + rx * Math.cos(rad), y: cy + ry * Math.sin(rad) };
+  });
+  return map;
+}
+
+// ============================================================
+// SVG
+// ============================================================
+function drawSVG(posMap) {
+  const svg = document.getElementById('flow-svg');
+  const canvas = document.getElementById('flow-canvas');
+  const W = canvas.offsetWidth, H = canvas.offsetHeight;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  let defs = '<defs>';
+  AGENTS.forEach(ag => {
+    defs += `<marker id="arr-${ag.id}" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3z" fill="${ag.color}" opacity=".5"/></marker>`;
+  });
+  defs += '</defs>';
+
+  let paths = '';
+  CONNECTIONS.forEach((conn, i) => {
+    const p1 = posMap[conn.from], p2 = posMap[conn.to];
+    if (!p1 || !p2) return;
+    const fromAg = AGENTS.find(a => a.id === conn.from);
+    const dx = p2.x - p1.x, dy = p2.y - p1.y;
+    const len = Math.sqrt(dx*dx + dy*dy);
+    if (len < 1) return;
+    const mx = (p1.x+p2.x)/2 - dy*0.14, my = (p1.y+p2.y)/2 + dx*0.14;
+    const s = 65/len;
+    const x1 = p1.x+dx*s, y1 = p1.y+dy*s;
+    const x2 = p2.x-dx*s, y2 = p2.y-dy*s;
+    paths += `<path class="conn-line" data-from="${conn.from}" data-to="${conn.to}" d="M${x1},${y1} Q${mx},${my} ${x2},${y2}" fill="none" stroke="${fromAg.color}" stroke-opacity=".24" stroke-width="1.3" stroke-dasharray="7 5" marker-end="url(#arr-${conn.from})" style="animation:dashFlow ${2.2+i*0.16}s linear infinite;"/>`;
+  });
+  svg.innerHTML = defs + paths;
+
+  // Re-apply highlight state if a node is expanded
+  if (ST.expandedAgent) applySVGState(ST.expandedAgent);
+}
+
+// ============================================================
+// NODES
+// ============================================================
+function renderNodes(posMap) {
+  const container = document.getElementById('nodes-container');
+  container.innerHTML = '';
+  AGENTS.forEach(ag => {
+    const pos = posMap[ag.id];
+    const el = document.createElement('div');
+    el.className = 'agent-node';
+    el.id = `node-${ag.id}`;
+    el.style.cssText = `left:${pos.x}px;top:${pos.y}px;--ac:${ag.color};--ac-glow:${ag.glow};`;
+    el.innerHTML = buildNodeHTML(ag);
+    el.addEventListener('click', e => { e.stopPropagation(); handleNodeClick(ag.id); });
+    container.appendChild(el);
+  });
+}
+
+function buildNodeHTML(ag) {
+  return `<div class="agent-card">${ag.startHere?'<div class="start-badge">Start Here</div>':''}<div class="node-pulse"></div><div class="node-icon">${ag.abbr}</div><div class="node-name">${ag.name}</div><div class="node-role">${ag.tag}</div></div>`;
+}
+
+// ============================================================
+// STATE CLASSES — reset everything atomically first
+// ============================================================
+function resetAllNodes() {
+  AGENTS.forEach(ag => {
+    const n = document.getElementById(`node-${ag.id}`);
+    if (!n) return;
+    n.classList.remove('active-node', 'dimmed', 'connected-node');
+  });
+}
+
+function resetAllLines() {
+  document.querySelectorAll('.conn-line').forEach(l => {
+    l.classList.remove('highlighted', 'dimmed-line');
+  });
+}
+
+function applySVGState(agentId) {
+  resetAllLines();
+  document.querySelectorAll('.conn-line').forEach(l => {
+    const from = l.dataset.from, to = l.dataset.to;
+    if (from === agentId || to === agentId) l.classList.add('highlighted');
+    else l.classList.add('dimmed-line');
+  });
+}
+
+function applyNodeState(agentId) {
+  const connectedIds = new Set();
+  CONNECTIONS.forEach(c => {
+    if (c.from === agentId) connectedIds.add(c.to);
+    if (c.to === agentId) connectedIds.add(c.from);
+  });
+
+  // Reset ALL nodes first — no partial state
+  resetAllNodes();
+
+  // Then apply new state
+  AGENTS.forEach(ag => {
+    const n = document.getElementById(`node-${ag.id}`);
+    if (!n) return;
+    if (ag.id === agentId) n.classList.add('active-node');
+    else if (connectedIds.has(ag.id)) n.classList.add('connected-node');
+    else n.classList.add('dimmed');
+  });
+}
+
+function applyRelNodeState(fromId, toId) {
+  resetAllNodes();
+  AGENTS.forEach(ag => {
+    const n = document.getElementById(`node-${ag.id}`);
+    if (!n) return;
+    if (ag.id === fromId || ag.id === toId) n.classList.add('active-node');
+    else n.classList.add('dimmed');
+  });
+  resetAllLines();
+  document.querySelectorAll('.conn-line').forEach(l => {
+    const from = l.dataset.from, to = l.dataset.to;
+    const isRel = (from===fromId&&to===toId)||(from===toId&&to===fromId);
+    if (isRel) l.classList.add('highlighted');
+    else l.classList.add('dimmed-line');
+  });
+}
+
+// ============================================================
+// PANEL OPEN / CLOSE
+// ============================================================
+function openPanel() {
+  const dp = document.getElementById('diagram-pane');
+  const detPane = document.getElementById('detail-pane');
+  dp.classList.add('panel-open');
+  detPane.classList.add('open');
+}
+
+function closePanel() {
+  ST.expandedAgent = null;
+  const dp = document.getElementById('diagram-pane');
+  const detPane = document.getElementById('detail-pane');
+  dp.classList.remove('panel-open');
+  detPane.classList.remove('open');
+  document.getElementById('detail-inner').innerHTML = '';
+  resetAllNodes();
+  resetAllLines();
+}
+
+// ============================================================
+// NODE CLICK
+// ============================================================
+function handleNodeClick(agentId) {
+  if (ST.expandedAgent === agentId) { closePanel(); return; }
+  ST.expandedAgent = agentId;
+  openPanel();
+  applyNodeState(agentId);
+  applySVGState(agentId);
+  renderAgentDetail(agentId);
+}
+
+// ============================================================
+// RENDER — AGENT DETAIL
+// ============================================================
+function renderAgentDetail(agentId) {
+  const ag = AGENTS.find(a => a.id === agentId);
+  const inner = document.getElementById('detail-inner');
+
+  const subHTML = ag.subagents.map((s,i) =>
+    `<div class="sub-card" style="--sc:${s.color};" onclick="openSubDetail('${agentId}',${i});event.stopPropagation();">
+      <div class="sub-card-name" style="color:${s.color};">${s.name}</div>
+      <div class="sub-card-role">${s.role}</div>
+      <div class="sub-card-preview">${s.desc}</div>
+      <div class="sub-hint">Click to expand</div>
+    </div>`
+  ).join('');
+
+  const collabHTML = ag.collaborators.map(c => {
+    const target = AGENTS.find(a => a.id === c.id);
+    const relKey = makeRelKey(agentId, c.id);
+    const hasRel = !!RELATIONSHIPS[relKey];
+    return `<div class="collab-item" style="--cc:${target.color};" onclick="handleCollabClick('${agentId}','${c.id}');event.stopPropagation();">
+      <span class="collab-dot" style="background:${target.color};"></span>
+      <span class="collab-name">${target.name}</span>
+      <span class="collab-label">${c.label}</span>
+      <span class="collab-arrow">${hasRel ? '→' : '↗'}</span>
+    </div>`;
+  }).join('');
+
+  const outputHTML = ag.outputs.map(o =>
+    `<div class="output-item"><span class="output-arrow" style="color:${ag.color};">→</span>${o}</div>`
+  ).join('');
+
+  const githubHTML = ag.github
+    ? `<a class="dp-link" href="${ag.github}" target="_blank" rel="noopener" style="color:${ag.color};border-color:${ag.color};background:${ag.glow};">View Live Output</a>`
+    : '';
+
+  inner.innerHTML = `<div class="detail-content" style="position:relative;padding-top:4px;">
+    <span class="dp-close" onclick="closePanel();event.stopPropagation();">✕</span>
+    <div class="dp-tag" style="background:${ag.glow};color:${ag.color};">${ag.tag}</div>
+    <div class="dp-name">${ag.name}</div>
+    <div class="dp-purpose" style="border-color:${ag.color};">${ag.purpose}</div>
+    <div class="dp-section">How It Works</div>
+    <div class="dp-method">${ag.method}</div>
+    <div class="dp-section">Works With — click any to see the relationship</div>
+    <div class="collab-list">${collabHTML}</div>
+    <div class="dp-section">Subagents</div>
+    <div class="sub-grid">${subHTML}</div>
+    <div class="dp-section">Outputs</div>
+    <div class="output-list">${outputHTML}</div>
+    ${githubHTML}
+  </div>`;
+}
+
+// ============================================================
+// RENDER — SUBAGENT DETAIL
+// ============================================================
+function openSubDetail(agentId, subIdx) {
+  const ag = AGENTS.find(a => a.id === agentId);
+  const sub = ag.subagents[subIdx];
+  const inner = document.getElementById('detail-inner');
+
+  inner.innerHTML = `<div class="detail-content sub-detail" style="position:relative;padding-top:4px;">
+    <span class="dp-close" onclick="closePanel();event.stopPropagation();">✕</span>
+    <div class="dp-back visible" onclick="renderAgentDetail('${agentId}');event.stopPropagation();">
+      <span class="dp-back-arrow">←</span> Back to ${ag.name}
+    </div>
+    <div class="dp-tag" style="background:${ag.glow};color:${ag.color};">${ag.tag}</div>
+    <div class="dp-name" style="color:${sub.color};">${sub.name}</div>
+    <div style="font-size:.63rem;color:var(--muted);margin-bottom:14px;font-weight:600;letter-spacing:.05em;">${sub.role}</div>
+    <div class="dp-section">What It Does</div>
+    <div class="dp-method">${sub.desc}</div>
+    <div class="dp-section">Data Flow</div>
+    <div class="sub-io">
+      <div class="sub-io-box">
+        <div class="sub-io-label">Input</div>
+        <div class="sub-io-val">${sub.input}</div>
+      </div>
+      <div class="sub-io-box" style="border-color:${sub.color};">
+        <div class="sub-io-label" style="color:${sub.color};">Output</div>
+        <div class="sub-io-val">${sub.output}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// RENDER — RELATIONSHIP DETAIL
+// ============================================================
+function makeRelKey(a, b) { return [a,b].sort().join('_'); }
+
+function handleCollabClick(fromId, toId) {
+  const key = makeRelKey(fromId, toId);
+  if (RELATIONSHIPS[key]) {
+    openRelDetail(fromId, toId);
+  } else {
+    ST.expandedAgent = toId;
+    applyNodeState(toId);
+    applySVGState(toId);
+    renderAgentDetail(toId);
+  }
+}
+
+function openRelDetail(fromId, toId) {
+  const key = makeRelKey(fromId, toId);
+  const rel = RELATIONSHIPS[key];
+  if (!rel) return;
+  const agA = AGENTS.find(a => a.id === fromId);
+  const agB = AGENTS.find(a => a.id === toId);
+
+  applyRelNodeState(fromId, toId);
+
+  const stepsHTML = rel.steps.map(s =>
+    `<div class="rel-step">
+      <span class="rel-step-num" style="color:${agA.color};">${s.num}</span>
+      <div>${s.text}${s.data ? `<div><span class="rel-data-badge" style="background:${agA.glow};color:${agA.color};">${s.data}</span></div>` : ''}</div>
+    </div>`
+  ).join('');
+
+  const inner = document.getElementById('detail-inner');
+  inner.innerHTML = `<div class="detail-content" style="position:relative;padding-top:4px;">
+    <span class="dp-close" onclick="closePanel();event.stopPropagation();">✕</span>
+    <div class="dp-back visible" onclick="renderAgentDetail('${fromId}');applyNodeState('${fromId}');applySVGState('${fromId}');event.stopPropagation();">
+      <span class="dp-back-arrow">←</span> Back to ${agA.name}
+    </div>
+    <div class="rel-header">
+      <span class="rel-dot" style="background:${agA.color};"></span>
+      <span class="rel-connector"></span>
+      <span class="rel-dot" style="background:${agB.color};"></span>
+      <span class="rel-title">${agA.name} + ${agB.name}</span>
+    </div>
+    <div class="rel-summary">${rel.summary}</div>
+    <div class="dp-section">Step-by-Step Data Exchange</div>
+    <div class="rel-flow">${stepsHTML}</div>
+  </div>`;
+}
+
+// ============================================================
+// DATA KITCHEN
+// ============================================================
+function renderKitchen() {
+  document.getElementById('kitchen-grid').innerHTML = DATA_STORES.map(store => {
+    const wTags = store.writers.map(id => {
+      const ag = AGENTS.find(a => a.id===id);
+      return `<span class="store-agent-tag" style="color:${ag.color};border-color:${ag.color};background:rgba(0,0,0,.3);">${ag.name}</span>`;
+    }).join('');
+    const rTags = store.readers.map(id => {
+      const ag = AGENTS.find(a => a.id===id);
+      return `<span class="store-agent-tag" style="color:${ag.color};border-color:${ag.color};background:rgba(0,0,0,.3);">${ag.name}</span>`;
+    }).join('');
+    return `<div class="store-card" id="store-${store.id}" style="--sc:${store.color};--sc-glow:${store.glow};" onclick="highlightStore('${store.id}')">
+      <div class="store-name">${store.name}</div>
+      <div class="store-file">${store.file}</div>
+      <div class="store-desc">${store.desc}</div>
+      <div class="store-rw"><span class="store-rw-label">Writes</span><div class="store-rw-agents">${wTags}</div></div>
+      <div class="store-rw"><span class="store-rw-label">Reads</span><div class="store-rw-agents">${rTags}</div></div>
+    </div>`;
+  }).join('');
+}
+
+function highlightStore(storeId) {
+  if (ST.highlightedStore === storeId) { clearStoreHighlight(); return; }
+  clearStoreHighlight(false);
+  ST.highlightedStore = storeId;
+  const store = DATA_STORES.find(s => s.id === storeId);
+  const ids = new Set([...store.writers, ...store.readers]);
+  document.getElementById(`store-${storeId}`).classList.add('active-store');
+  AGENTS.forEach(ag => {
+    const n = document.getElementById(`node-${ag.id}`);
+    if (!n) return;
+    const card = n.querySelector('.agent-card');
+    if (ids.has(ag.id)) {
+      n.style.opacity = '1';
+      if (card) { card.style.borderColor = ag.color; card.style.boxShadow = `0 0 28px ${ag.glow}`; }
+    } else {
+      n.style.opacity = '0.18';
+    }
+  });
+}
+
+function clearStoreHighlight(clear=true) {
+  if (clear) ST.highlightedStore = null;
+  document.querySelectorAll('.store-card').forEach(c => c.classList.remove('active-store'));
+  AGENTS.forEach(ag => {
+    const n = document.getElementById(`node-${ag.id}`);
+    if (!n) return;
+    n.style.opacity = '';
+    const card = n.querySelector('.agent-card');
+    if (card) { card.style.borderColor = ''; card.style.boxShadow = ''; }
+  });
+}
+
+// ============================================================
+// BUILD — draws SVG + nodes at current pane size
+// ============================================================
+function build() {
+  const posMap = getPositions();
+  drawSVG(posMap);
+  renderNodes(posMap);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  if (!document.getElementById('dash-ks')) {
+    const s = document.createElement('style');
+    s.id = 'dash-ks';
+    s.textContent = '@keyframes dashFlow{to{stroke-dashoffset:-24;}}';
+    document.head.appendChild(s);
+  }
+
+  build();
+  renderKitchen();
+
+  // Redraw after diagram pane finishes its CSS transition
+  const dp = document.getElementById('diagram-pane');
+  dp.addEventListener('transitionend', e => {
+    if (e.propertyName === 'flex-basis' || e.propertyName === 'flex') {
+      build();
+      // Re-apply state classes after rebuild (renderNodes clears them)
+      if (ST.expandedAgent) {
+        applyNodeState(ST.expandedAgent);
+        applySVGState(ST.expandedAgent);
+      }
+    }
+  });
+
+  // Click outside to close
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#nodes-container') && !e.target.closest('#detail-pane')) {
+      if (ST.expandedAgent) closePanel();
+    }
+  });
+
+  // Resize debounce
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(build, 150);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
