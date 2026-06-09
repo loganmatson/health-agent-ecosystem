@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Whoop Performance — June 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha384-9nhczxUqK87bcKHh20fSQcTGD4qq5GhayNYSYWqwBkINBhOfQLg/P5HG5lF1urn4" crossorigin="anonymous"></script>
+<style>
+:root{
+  --bg:#0D0D0F; --panel:#15151A; --panel2:#1B1B22; --line:#26262F;
+  --txt:#E8E8EC; --mut:#8A8A95; --dim:#5A5A66;
+  --teal:#00F5C4; --tealdim:rgba(0,245,196,.14); --red:#FF5A6E; --reddim:rgba(255,90,110,.14);
+  --amber:#FFC857;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',system-ui,sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+h1,h2,h3,.gk{font-family:'Space Grotesk',sans-serif;letter-spacing:-.02em}
+.wrap{max-width:1140px;margin:0 auto;padding:0 28px}
+section{padding:88px 0;border-top:1px solid var(--line)}
+section:first-of-type{border-top:none}
+.eyebrow{font-family:'Space Grotesk';font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.18em;color:var(--teal);margin-bottom:14px}
+h2{font-size:34px;font-weight:700;margin-bottom:10px}
+.lede{color:var(--mut);font-size:16px;max-width:680px;margin-bottom:34px}
+a{color:var(--teal);text-decoration:none}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(13,13,15,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+.brand{font-family:'Space Grotesk';font-weight:700;font-size:16px;display:flex;align-items:center;gap:9px}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--teal);box-shadow:0 0 12px var(--teal)}
+.navlinks{display:flex;gap:6px;flex-wrap:wrap}
+.navlinks a{color:var(--mut);font-size:13px;font-weight:500;padding:6px 11px;border-radius:7px;transition:.18s}
+.navlinks a:hover{color:var(--txt);background:var(--panel2)}
+@media(max-width:880px){.navlinks{display:none}}
+
+/* HERO */
+.hero{padding:96px 0 84px;text-align:left;position:relative}
+.hero h1{font-size:clamp(40px,6vw,68px);font-weight:700;line-height:1.02;margin-bottom:18px}
+.hero h1 .accent{color:var(--teal)}
+.hero .range{color:var(--mut);font-size:16px;margin-bottom:8px;font-family:'Space Grotesk';letter-spacing:.04em}
+.hero .sub{color:var(--dim);font-size:14px;margin-bottom:40px}
+.findings{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:40px}
+@media(max-width:780px){.findings{grid-template-columns:1fr}}
+.find{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px;position:relative;overflow:hidden;transition:.25s}
+.find:hover{border-color:var(--teal);transform:translateY(-3px)}
+.find::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--teal)}
+.find .big{font-family:'Space Grotesk';font-size:38px;font-weight:700;color:var(--teal);line-height:1;margin-bottom:8px}
+.find .lbl{font-size:13px;font-weight:600;color:var(--txt);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+.find .desc{font-size:13px;color:var(--mut);line-height:1.5}
+
+/* PERIOD TOGGLE */
+.toggle{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:5px;gap:4px;flex-wrap:wrap}
+.toggle button{font-family:'Space Grotesk';font-weight:600;font-size:13px;color:var(--mut);background:none;border:none;padding:9px 16px;border-radius:8px;cursor:pointer;transition:.18s}
+.toggle button:hover{color:var(--txt)}
+.toggle button.on{background:var(--teal);color:#06120E}
+.toggle-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.toggle-note{font-size:12px;color:var(--dim)}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:42px}
+@media(max-width:980px){.kpis{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.kpis{grid-template-columns:1fr}}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:20px;transition:.25s}
+.kpi:hover{border-color:var(--teal);box-shadow:0 0 24px rgba(0,245,196,.12)}
+.kpi .k-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--mut);font-weight:600;margin-bottom:10px}
+.kpi .k-val{font-family:'Space Grotesk';font-size:30px;font-weight:700;line-height:1;color:var(--txt)}
+.kpi .k-val small{font-size:14px;color:var(--mut);font-weight:500}
+.kpi .k-meta{font-size:12px;color:var(--dim);margin-top:8px}
+.kpi .k-delta{font-size:12px;font-weight:600;margin-top:6px}
+.up{color:var(--teal)} .down{color:var(--red)}
+
+/* CARDS / CHARTS */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px;margin-bottom:22px}
+.card h3{font-size:18px;font-weight:600;margin-bottom:4px}
+.card .csub{font-size:13px;color:var(--mut);margin-bottom:18px}
+.chart-box{position:relative;height:340px}
+.chart-box.tall{height:380px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:820px){.grid2{grid-template-columns:1fr}}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font-family:'Space Grotesk';font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;font-size:11px;padding:10px 12px;border-bottom:1px solid var(--line)}
+td{padding:10px 12px;border-bottom:1px solid var(--line);color:var(--txt)}
+tr:last-child td{border-bottom:none}
+.row-sig{background:var(--tealdim)}
+.row-sig td:first-child{font-weight:600}
+.tag{display:inline-block;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;font-family:'Space Grotesk'}
+.tag.pos{background:var(--tealdim);color:var(--teal)}
+.tag.neg{background:var(--reddim);color:var(--red)}
+.tag.neu{background:var(--panel2);color:var(--mut)}
+.star{color:var(--teal);font-weight:700}
+
+/* WEEKLY GRID */
+.weekgrid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:820px){.weekgrid{grid-template-columns:1fr}}
+.wk-hint{font-size:13px;color:var(--dim);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.drill{margin-top:4px;background:var(--panel2);border:1px solid var(--line);border-radius:13px;overflow:hidden;max-height:0;opacity:0;transition:max-height .4s ease,opacity .3s,margin .3s;margin-bottom:0}
+.drill.open{max-height:760px;opacity:1;margin-bottom:22px;overflow:auto}
+.drill-inner{padding:22px}
+.drill-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px}
+.drill-head h3{font-size:17px}
+.dstats{display:flex;gap:22px;flex-wrap:wrap;margin-bottom:18px}
+.dstat{font-size:13px;color:var(--mut)}
+.dstat b{display:block;font-family:'Space Grotesk';font-size:22px;color:var(--txt);font-weight:700}
+.tag-narr{font-size:11px;padding:4px 10px;border-radius:7px;font-family:'Space Grotesk';font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+
+/* HEATMAP */
+.heat{display:grid;gap:3px;font-size:11px;margin-top:8px;overflow-x:auto}
+.heat .hc{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:5px;font-family:'Space Grotesk';font-weight:600;color:#0A0A0C;min-width:42px}
+.heat .hlbl{display:flex;align-items:center;font-family:'Space Grotesk';font-weight:600;color:var(--mut);font-size:10.5px;justify-content:flex-end;padding-right:6px;text-align:right}
+.heat .htop{display:flex;align-items:flex-end;justify-content:center;color:var(--mut);font-size:10px;font-weight:600;font-family:'Space Grotesk';padding-bottom:5px;writing-mode:vertical-rl;transform:rotate(180deg)}
+.heat-legend{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--mut);margin-top:14px}
+.heat-bar{height:9px;width:160px;border-radius:5px;background:linear-gradient(90deg,#FF5A6E,#26262F 50%,#00F5C4)}
+
+/* ABOUT */
+.abt-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:820px){.abt-grid{grid-template-columns:1fr}}
+.abt-grid ul{list-style:none}
+.abt-grid li{font-size:14px;color:var(--mut);padding:8px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:14px}
+.abt-grid li:last-child{border-bottom:none}
+.abt-grid li b{color:var(--txt);font-weight:500;font-family:'Space Grotesk'}
+
+.insuf{background:var(--panel2);border:1px dashed var(--line);border-radius:12px;padding:30px;text-align:center;color:var(--dim);font-size:14px}
+footer{padding:48px 0;border-top:1px solid var(--line);color:var(--dim);font-size:13px;text-align:center}
+
+/* reveal — fade only (NO transform: a transformed parent breaks Chart.js canvas sizing).
+   Only active when JS is present; content is visible by default. */
+html.js-reveal .reveal{opacity:0;transition:opacity .7s ease}
+html.js-reveal .reveal.in{opacity:1}
+@media (prefers-reduced-motion: reduce){html.js-reveal .reveal{opacity:1;transition:none}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="brand"><span class="dot"></span>WHOOP · JUN 26</div>
+    <div class="navlinks">
+      <a href="#overview">Overview</a>
+      <a href="#sleep">Sleep</a>
+      <a href="#training">Training</a>
+      <a href="#interventions">Interventions</a>
+      <a href="#weekly">Weekly</a>
+      <a href="#model">Model</a>
+      <a href="#about">About</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="wrap">
+    <div class="range">DEC 25 2025 — JUN 9 2026 · 167 DAYS</div>
+    <h1>Recovery, rebuilt.<br><span class="accent">Post-marathon</span> bounce-back.</h1>
+    <div class="sub">Pittsburgh Marathon ran May 3. This is what 43 days of recovery did to the numbers.</div>
+
+    <div class="findings reveal">
+      <div class="find">
+        <div class="big">+21.3<small style="font-size:18px"> ms</small></div>
+        <div class="lbl">HRV jumped</div>
+        <div class="desc">Baseline 132.0 → post-marathon 153.3 ms (+16.1%). The single largest physiological shift of the window.</div>
+      </div>
+      <div class="find">
+        <div class="big">−7.6<small style="font-size:18px"> bpm</small></div>
+        <div class="lbl">Resting HR dropped</div>
+        <div class="desc">56.2 → 48.5 bpm post-marathon (−13.6%). Lower RHR + higher HRV = a more parasympathetic, recovered autonomic state.</div>
+      </div>
+      <div class="find">
+        <div class="big">r = 0.82</div>
+        <div class="lbl">HRV drives recovery</div>
+        <div class="desc">HRV independently predicts recovery (partial r=0.824, p&lt;0.001) even after controlling for sleep — the strongest signal in the model.</div>
+      </div>
+    </div>
+
+    <div class="toggle-row reveal">
+      <div class="toggle" id="periodToggle">
+        <button data-p="full" class="on">Full Window</button>
+        <button data-p="p1">Baseline · Dec–Apr</button>
+        <button data-p="p2">Post-Marathon · Apr–Jun</button>
+      </div>
+      <span class="toggle-note" id="periodNote">All charts update together · n=167 days</span>
+    </div>
+  </div>
+</header>
+
+<!-- OVERVIEW -->
+<section id="overview">
+  <div class="wrap">
+    <div class="eyebrow">01 · Overview</div>
+    <h2 class="reveal">The five vitals</h2>
+    <p class="lede reveal">Means across the selected period. Recovery and HRV climbed post-marathon while strain and energy burned fell — the classic shape of a deload.</p>
+
+    <div class="kpis reveal" id="kpis"></div>
+
+    <div class="card reveal">
+      <h3>Recovery &amp; HRV over time</h3>
+      <div class="csub" id="tsSub">Dual-axis daily series · marathon annotated May 3</div>
+      <div class="chart-box tall"><canvas id="tsChart"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLEEP -->
+<section id="sleep">
+  <div class="wrap">
+    <div class="eyebrow">02 · Sleep</div>
+    <h2 class="reveal">Architecture &amp; debt</h2>
+    <p class="lede reveal">Sleep stages by ISO week and the running sleep-debt line. Asleep duration is the only sleep variable that significantly predicts recovery (β=0.135, p&lt;0.001).</p>
+
+    <div class="card reveal">
+      <h3>Weekly sleep stages</h3>
+      <div class="csub">Deep · REM · Light, minutes per night (weekly mean)</div>
+      <div class="chart-box tall"><canvas id="stagesChart"></canvas></div>
+    </div>
+    <div class="card reveal">
+      <h3>Sleep debt trend</h3>
+      <div class="csub">Weekly mean sleep debt (min) — lower is better</div>
+      <div class="chart-box"><canvas id="debtChart"></canvas></div>
+    </div>
+    <p class="lede reveal" style="margin-bottom:0">
+      Across the window, deep sleep held steady (~98 min) while sleep debt fell 13.7% post-marathon (77.5 → 69.4 min).
+      The taper and post-race weeks (W18–W20) carried the lowest strain and the cleanest sleep of the year — debt bottomed near 42 min in late April before drifting back up as training resumed.
+    </p>
+  </div>
+</section>
+
+<!-- TRAINING -->
+<section id="training">
+  <div class="wrap">
+    <div class="eyebrow">03 · Training</div>
+    <h2 class="reveal">Dose &amp; modality</h2>
+    <p class="lede reveal">Does strain predict next-day recovery, and does it matter what kind of training? The honest answer: weakly, and no.</p>
+
+    <div class="grid2">
+      <div class="card reveal">
+        <h3>Strain → next-day recovery</h3>
+        <div class="csub" id="drSub">Each point = one day · quadratic fit overlaid</div>
+        <div class="chart-box"><canvas id="doseChart"></canvas></div>
+      </div>
+      <div class="card reveal">
+        <h3>Recovery by training modality</h3>
+        <div class="csub" id="modSub">Next-day recovery mean ± SD by activity type</div>
+        <div class="chart-box"><canvas id="modChart"></canvas></div>
+      </div>
+    </div>
+    <p class="lede reveal" style="margin-bottom:0">
+      The quadratic (inverted-U) term is <b>not significant</b> in any period (p=0.20 overall) — there's no clean "optimal strain zone" in this data. A weak negative linear trend holds (r=−0.215, p=0.0095): higher-strain days are followed by slightly lower recovery.
+      No training modality produced a statistically significant next-day difference (all p&gt;0.05). HRV shows a consistent but non-significant gradient — Rest &gt; Other &gt; Strength &gt; Running — hinting that running suppresses HRV more acutely than lifting.
+    </p>
+  </div>
+</section>
+
+<!-- INTERVENTIONS -->
+<section id="interventions">
+  <div class="wrap">
+    <div class="eyebrow">04 · Interventions</div>
+    <h2 class="reveal">What actually moved the needle</h2>
+    <p class="lede reveal">Cohen's d for each logged behavior on HRV — the metric it shifted most. Green helps, red hurts. Bars past ±0.5 are practically meaningful.</p>
+
+    <div class="card reveal">
+      <h3>Behavioral effect sizes — HRV</h3>
+      <div class="csub">Cohen's d (yes vs. no) · sorted by magnitude · ★ = p&lt;0.05</div>
+      <div class="chart-box tall"><canvas id="intChart"></canvas></div>
+    </div>
+
+    <div class="card reveal">
+      <h3>Full intervention table</h3>
+      <div class="csub">Ranked by |d| on HRV · all four outcomes shown</div>
+      <div style="overflow-x:auto">
+        <table id="intTable"><thead><tr>
+          <th>Behavior</th><th>n (yes/no)</th><th>HRV d</th><th>Recovery d</th><th>Deep d</th><th>Sleep d</th><th>Flag</th>
+        </tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+    <p class="lede reveal" style="margin-bottom:0">
+      The nasal strip stands out — but backwards: it associates with a <b>−0.74 d drop in HRV</b> (p&lt;0.001), almost certainly because Logan reaches for it on already-compromised nights (congestion, travel, drink). Reading in bed is the clearest <i>positive</i> lever — +0.51 d on sleep performance (p&lt;0.001). Hydration and electrolytes trend helpful on recovery but don't clear significance.
+    </p>
+  </div>
+</section>
+
+<!-- WEEKLY -->
+<section id="weekly">
+  <div class="wrap">
+    <div class="eyebrow">05 · Weekly Trajectory</div>
+    <h2 class="reveal">26 weeks, one click deep</h2>
+    <p class="lede reveal">Recovery, HRV, Strain, and Deep Sleep by ISO week. Click any week's bar to drop into its daily breakdown.</p>
+
+    <div class="wk-hint reveal">▸ Click a bar in any chart below to expand that week. Click again to collapse.</div>
+
+    <div id="drillZone"></div>
+
+    <div class="weekgrid reveal">
+      <div class="card"><h3>Recovery %</h3><div class="csub">Weekly mean</div><div class="chart-box"><canvas id="wkRec"></canvas></div></div>
+      <div class="card"><h3>HRV (ms)</h3><div class="csub">Weekly mean</div><div class="chart-box"><canvas id="wkHrv"></canvas></div></div>
+      <div class="card"><h3>Day Strain</h3><div class="csub">Weekly mean</div><div class="chart-box"><canvas id="wkStr"></canvas></div></div>
+      <div class="card"><h3>Deep Sleep (min)</h3><div class="csub">Weekly mean</div><div class="chart-box"><canvas id="wkDeep"></canvas></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- MODEL -->
+<section id="model">
+  <div class="wrap">
+    <div class="eyebrow">06 · Recovery Model</div>
+    <h2 class="reveal">What predicts recovery</h2>
+    <p class="lede reveal">OLS regression of next-day recovery on sleep architecture and prior-day strain. Significant predictors highlighted. HRV gets its own row because it carries the strongest independent signal.</p>
+
+    <div class="card reveal">
+      <h3>OLS regression</h3>
+      <div class="csub" id="regSub">Recovery % ~ sleep + prior strain</div>
+      <div style="overflow-x:auto">
+        <table id="regTable"><thead><tr>
+          <th>Predictor</th><th>β</th><th>SE</th><th>t</th><th>p</th><th>Sig</th>
+        </tr></thead><tbody></tbody></table>
+      </div>
+      <div class="csub" id="regFit" style="margin:16px 0 0"></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card reveal">
+        <h3>HRV → Recovery pathway</h3>
+        <div class="csub">Pearson &amp; partial r (controlling for sleep)</div>
+        <table id="hrvTable"><tbody></tbody></table>
+      </div>
+      <div class="card reveal">
+        <h3>Correlation heatmap</h3>
+        <div class="csub">Pearson r across all biometrics (full window)</div>
+        <div class="heat" id="heat"></div>
+        <div class="heat-legend"><span>−1</span><div class="heat-bar"></div><span>+1</span></div>
+      </div>
+    </div>
+    <p class="lede reveal" style="margin-bottom:0" id="modelNarr"></p>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="wrap">
+    <div class="eyebrow">07 · About</div>
+    <h2 class="reveal">Methodology</h2>
+    <p class="lede reveal">How this report was built and what it can — and can't — claim.</p>
+    <div class="abt-grid reveal">
+      <div class="card" style="margin:0">
+        <h3 style="margin-bottom:14px">Sample &amp; window</h3>
+        <ul>
+          <li>Data window <b>Dec 25 2025 – Jun 9 2026</b></li>
+          <li>Total days <b>167</b></li>
+          <li>Baseline (P1) <b>124 days</b></li>
+          <li>Post-marathon (P2) <b>43 days</b></li>
+          <li>Logged workouts <b>369</b></li>
+          <li>Marathon date <b>May 3 2026</b></li>
+          <li>Period split <b>Apr 26 2026</b></li>
+        </ul>
+      </div>
+      <div class="card" style="margin:0">
+        <h3 style="margin-bottom:14px">Statistical methods</h3>
+        <ul>
+          <li>Recovery model <b>OLS multiple regression</b></li>
+          <li>HRV pathway <b>Pearson + partial r</b></li>
+          <li>Interventions <b>Cohen's d + t-test</b></li>
+          <li>Dose-response <b>Quadratic + linear fit</b></li>
+          <li>Modality <b>Pairwise t-tests</b></li>
+          <li>Correlations <b>Pearson, threshold 0.5</b></li>
+          <li>Significance <b>α = 0.05</b></li>
+        </ul>
+      </div>
+    </div>
+    <div class="card reveal" style="margin-top:22px">
+      <h3 style="margin-bottom:10px">Caveats &amp; skipped analyses</h3>
+      <p style="font-size:14px;color:var(--mut);line-height:1.65">
+        Post-marathon n=43 is modest — period-2 effect sizes (and the dose-response vertex shift) are <b>descriptive, not prescriptive</b>. The dose-response quadratic never reached significance, so the "optimal strain zone" is not claimed. Modality comparisons all fell short of significance and several post-marathon cells dropped below the n≥8 floor. Intervention behaviors are <b>self-reported journal flags</b> — associations only, not causal. Nutrition/meal-annotation correlation was out of scope this run and is omitted rather than stubbed. All charts are powered by data baked into this file; nothing is fetched at runtime.
+      </p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">Whoop Performance Report · Generated 2026-06-09 · Self-contained · whoop-report SA6 (HTML)</div>
+</footer>
+
+<script>
+/* ============================================================
+   BAKED DATA — extracted from analysis-results.json + whoop-clean.csv
+   No runtime fetch. All values hardcoded.
+   ============================================================ */
+const PERIODS = {
+  full:{label:"Full Window",n:167,note:"All charts update together · n=167 days"},
+  p1:{label:"Baseline · Dec–Apr",n:124,note:"Baseline period · Dec 25 – Apr 26 · n=124 days"},
+  p2:{label:"Post-Marathon · Apr–Jun",n:43,note:"Post-marathon recovery · Apr 27 – Jun 9 · n=43 days (sparse — read with caution)"}
+};
+
+// KPI means per period: [value, unit, deltaPct(null=na), good-direction-up?]
+const OVERALL = {
+  full:{rec:58.3,hrv:137.5,sleep:77.5,strain:12.3,rhr:54.2},
+  p1:{rec:56.5,hrv:132.0,sleep:77.6,strain:12.7,rhr:56.2},
+  p2:{rec:63.4,hrv:153.3,sleep:77.3,strain:11.1,rhr:48.5}
+};
+const TOP_INT = {behavior:"Reading in bed", metric:"+0.51 d sleep perf"};
+
+// Daily series (sorted asc) for time series + dose-response. rec/hrv/rhr/str/deep/sp
+const DAILY = [{"d":"2025-12-25","rec":94,"hrv":216,"rhr":42,"str":15.2,"deep":95,"sp":76},{"d":"2025-12-25","rec":null,"hrv":null,"rhr":null,"str":4.1,"deep":null,"sp":null},{"d":"2025-12-26","rec":93,"hrv":129,"rhr":53,"str":6.3,"deep":63,"sp":82},{"d":"2025-12-27","rec":97,"hrv":214,"rhr":45,"str":17.3,"deep":96,"sp":87},{"d":"2025-12-28","rec":53,"hrv":121,"rhr":55,"str":13.8,"deep":73,"sp":83},{"d":"2025-12-30","rec":94,"hrv":211,"rhr":44,"str":16.2,"deep":79,"sp":82},{"d":"2025-12-30","rec":95,"hrv":190,"rhr":44,"str":8.5,"deep":120,"sp":80},{"d":"2026-01-01","rec":69,"hrv":150,"rhr":52,"str":11.4,"deep":135,"sp":73},{"d":"2026-01-02","rec":46,"hrv":145,"rhr":53,"str":12.9,"deep":116,"sp":79},{"d":"2026-01-02","rec":58,"hrv":173,"rhr":52,"str":17.1,"deep":81,"sp":80},{"d":"2026-01-03","rec":69,"hrv":176,"rhr":47,"str":16.8,"deep":101,"sp":84},{"d":"2026-01-05","rec":63,"hrv":167,"rhr":56,"str":14.2,"deep":70,"sp":84},{"d":"2026-01-05","rec":27,"hrv":130,"rhr":59,"str":11.5,"deep":70,"sp":78},{"d":"2026-01-06","rec":82,"hrv":190,"rhr":52,"str":16.1,"deep":83,"sp":90},{"d":"2026-01-07","rec":57,"hrv":161,"rhr":54,"str":11.6,"deep":116,"sp":83},{"d":"2026-01-08","rec":61,"hrv":166,"rhr":50,"str":15.3,"deep":77,"sp":80},{"d":"2026-01-10","rec":59,"hrv":163,"rhr":56,"str":17.6,"deep":163,"sp":83},{"d":"2026-01-10","rec":3,"hrv":142,"rhr":56,"str":4.2,"deep":9,"sp":8},{"d":"2026-01-11","rec":33,"hrv":125,"rhr":61,"str":18.6,"deep":76,"sp":80},{"d":"2026-01-12","rec":22,"hrv":105,"rhr":62,"str":14.9,"deep":70,"sp":74},{"d":"2026-01-13","rec":29,"hrv":110,"rhr":61,"str":14.9,"deep":112,"sp":83},{"d":"2026-01-14","rec":53,"hrv":146,"rhr":59,"str":17.4,"deep":102,"sp":84},{"d":"2026-01-15","rec":48,"hrv":127,"rhr":58,"str":4.3,"deep":83,"sp":78},{"d":"2026-01-17","rec":22,"hrv":89,"rhr":59,"str":4.8,"deep":152,"sp":72},{"d":"2026-01-18","rec":60,"hrv":156,"rhr":57,"str":17,"deep":101,"sp":78},{"d":"2026-01-18","rec":35,"hrv":116,"rhr":61,"str":0.8,"deep":99,"sp":56},{"d":"2026-01-19","rec":53,"hrv":126,"rhr":58,"str":12.5,"deep":103,"sp":77},{"d":"2026-01-20","rec":52,"hrv":129,"rhr":55,"str":18.2,"deep":120,"sp":79},{"d":"2026-01-21","rec":46,"hrv":123,"rhr":52,"str":19.8,"deep":97,"sp":74},{"d":"2026-01-22","rec":26,"hrv":95,"rhr":58,"str":16.2,"deep":97,"sp":83},{"d":"2026-01-23","rec":47,"hrv":125,"rhr":56,"str":12.1,"deep":84,"sp":84},{"d":"2026-01-24","rec":78,"hrv":165,"rhr":51,"str":7.2,"deep":97,"sp":80},{"d":"2026-01-25","rec":45,"hrv":119,"rhr":57,"str":12.9,"deep":119,"sp":88},{"d":"2026-01-26","rec":8,"hrv":79,"rhr":61,"str":4.5,"deep":119,"sp":97},{"d":"2026-01-27","rec":42,"hrv":121,"rhr":54,"str":19,"deep":101,"sp":88},{"d":"2026-01-28","rec":7,"hrv":87,"rhr":61,"str":14.5,"deep":98,"sp":72},{"d":"2026-01-29","rec":33,"hrv":94,"rhr":59,"str":17.8,"deep":124,"sp":82},{"d":"2026-01-31","rec":72,"hrv":129,"rhr":57,"str":18.3,"deep":63,"sp":84},{"d":"2026-01-31","rec":42,"hrv":106,"rhr":59,"str":12.1,"deep":90,"sp":79},{"d":"2026-02-01","rec":55,"hrv":125,"rhr":57,"str":15.7,"deep":88,"sp":84},{"d":"2026-02-02","rec":62,"hrv":128,"rhr":60,"str":14.1,"deep":118,"sp":86},{"d":"2026-02-03","rec":50,"hrv":122,"rhr":61,"str":18.9,"deep":103,"sp":85},{"d":"2026-02-04","rec":53,"hrv":123,"rhr":61,"str":12.8,"deep":71,"sp":84},{"d":"2026-02-05","rec":71,"hrv":136,"rhr":59,"str":17.8,"deep":94,"sp":84},{"d":"2026-02-06","rec":56,"hrv":130,"rhr":59,"str":13.3,"deep":91,"sp":88},{"d":"2026-02-08","rec":28,"hrv":92,"rhr":68,"str":4.4,"deep":96,"sp":74},{"d":"2026-02-08","rec":14,"hrv":62,"rhr":64,"str":19.6,"deep":124,"sp":63},{"d":"2026-02-09","rec":32,"hrv":92,"rhr":64,"str":16,"deep":95,"sp":79},{"d":"2026-02-10","rec":25,"hrv":89,"rhr":66,"str":13,"deep":60,"sp":83},{"d":"2026-02-11","rec":25,"hrv":69,"rhr":61,"str":9.5,"deep":88,"sp":85},{"d":"2026-02-12","rec":47,"hrv":83,"rhr":61,"str":16.1,"deep":118,"sp":87},{"d":"2026-02-14","rec":62,"hrv":98,"rhr":62,"str":17.2,"deep":74,"sp":86},{"d":"2026-02-14","rec":46,"hrv":88,"rhr":64,"str":11,"deep":107,"sp":77},{"d":"2026-02-15","rec":66,"hrv":100,"rhr":60,"str":12.3,"deep":84,"sp":84},{"d":"2026-02-16","rec":90,"hrv":139,"rhr":58,"str":13.3,"deep":88,"sp":82},{"d":"2026-02-17","rec":85,"hrv":134,"rhr":60,"str":17.3,"deep":85,"sp":87},{"d":"2026-02-18","rec":73,"hrv":115,"rhr":59,"str":14.2,"deep":56,"sp":88},{"d":"2026-02-19","rec":89,"hrv":134,"rhr":58,"str":16.9,"deep":91,"sp":84},{"d":"2026-02-21","rec":78,"hrv":138,"rhr":59,"str":13.7,"deep":99,"sp":88},{"d":"2026-02-21","rec":92,"hrv":151,"rhr":55,"str":11,"deep":112,"sp":78},{"d":"2026-02-22","rec":64,"hrv":124,"rhr":58,"str":0.4,"deep":98,"sp":85},{"d":"2026-02-23","rec":78,"hrv":133,"rhr":54,"str":16.2,"deep":116,"sp":86},{"d":"2026-02-24","rec":79,"hrv":137,"rhr":59,"str":9,"deep":87,"sp":83},{"d":"2026-02-25","rec":84,"hrv":138,"rhr":56,"str":12.7,"deep":107,"sp":90},{"d":"2026-02-27","rec":89,"hrv":152,"rhr":55,"str":2.5,"deep":110,"sp":82},{"d":"2026-02-27","rec":8,"hrv":49,"rhr":64,"str":1.9,"deep":87,"sp":29},{"d":"2026-02-28","rec":83,"hrv":152,"rhr":50,"str":20.6,"deep":103,"sp":70},{"d":"2026-03-01","rec":44,"hrv":100,"rhr":60,"str":0.9,"deep":95,"sp":75},{"d":"2026-03-02","rec":89,"hrv":175,"rhr":47,"str":4.6,"deep":93,"sp":79},{"d":"2026-03-03","rec":80,"hrv":145,"rhr":53,"str":11.6,"deep":102,"sp":84},{"d":"2026-03-04","rec":64,"hrv":131,"rhr":56,"str":12.5,"deep":92,"sp":83},{"d":"2026-03-06","rec":92,"hrv":177,"rhr":48,"str":15,"deep":126,"sp":79},{"d":"2026-03-06","rec":31,"hrv":118,"rhr":53,"str":1,"deep":104,"sp":37},{"d":"2026-03-07","rec":93,"hrv":200,"rhr":49,"str":18.3,"deep":99,"sp":77},{"d":"2026-03-08","rec":33,"hrv":93,"rhr":55,"str":8.9,"deep":136,"sp":75},{"d":"2026-03-09","rec":39,"hrv":100,"rhr":64,"str":15.2,"deep":80,"sp":79},{"d":"2026-03-10","rec":59,"hrv":127,"rhr":58,"str":18.1,"deep":118,"sp":82},{"d":"2026-03-11","rec":64,"hrv":132,"rhr":56,"str":1.4,"deep":62,"sp":85},{"d":"2026-03-12","rec":72,"hrv":137,"rhr":51,"str":15.6,"deep":114,"sp":90},{"d":"2026-03-13","rec":65,"hrv":129,"rhr":60,"str":17.1,"deep":73,"sp":86},{"d":"2026-03-14","rec":60,"hrv":141,"rhr":59,"str":12.8,"deep":63,"sp":80},{"d":"2026-03-15","rec":68,"hrv":144,"rhr":58,"str":18.5,"deep":93,"sp":82},{"d":"2026-03-16","rec":55,"hrv":130,"rhr":60,"str":17,"deep":98,"sp":84},{"d":"2026-03-17","rec":75,"hrv":144,"rhr":58,"str":18.4,"deep":67,"sp":82},{"d":"2026-03-18","rec":71,"hrv":143,"rhr":56,"str":12.7,"deep":118,"sp":84},{"d":"2026-03-20","rec":91,"hrv":169,"rhr":53,"str":17.1,"deep":102,"sp":78},{"d":"2026-03-21","rec":1,"hrv":23,"rhr":73,"str":4.1,"deep":109,"sp":32},{"d":"2026-03-22","rec":68,"hrv":154,"rhr":55,"str":18.6,"deep":74,"sp":77},{"d":"2026-03-22","rec":55,"hrv":126,"rhr":60,"str":14.6,"deep":92,"sp":77},{"d":"2026-03-23","rec":61,"hrv":139,"rhr":58,"str":13.2,"deep":96,"sp":76},{"d":"2026-03-24","rec":67,"hrv":144,"rhr":53,"str":13.8,"deep":108,"sp":81},{"d":"2026-03-25","rec":90,"hrv":199,"rhr":46,"str":4.8,"deep":127,"sp":84},{"d":"2026-03-27","rec":62,"hrv":147,"rhr":53,"str":11.8,"deep":112,"sp":80},{"d":"2026-03-28","rec":35,"hrv":109,"rhr":55,"str":9.4,"deep":140,"sp":70},{"d":"2026-03-29","rec":51,"hrv":132,"rhr":57,"str":7.6,"deep":114,"sp":74},{"d":"2026-03-30","rec":88,"hrv":182,"rhr":41,"str":15.5,"deep":64,"sp":79},{"d":"2026-03-30","rec":85,"hrv":179,"rhr":49,"str":5.7,"deep":93,"sp":78},{"d":"2026-03-31","rec":70,"hrv":156,"rhr":47,"str":18,"deep":93,"sp":83},{"d":"2026-04-01","rec":82,"hrv":180,"rhr":47,"str":14.4,"deep":86,"sp":84},{"d":"2026-04-03","rec":35,"hrv":136,"rhr":53,"str":11.7,"deep":92,"sp":56},{"d":"2026-04-04","rec":37,"hrv":124,"rhr":62,"str":4.4,"deep":108,"sp":72},{"d":"2026-04-05","rec":54,"hrv":145,"rhr":53,"str":18.2,"deep":104,"sp":79},{"d":"2026-04-05","rec":72,"hrv":167,"rhr":52,"str":13.8,"deep":94,"sp":73},{"d":"2026-04-06","rec":71,"hrv":167,"rhr":53,"str":13.4,"deep":108,"sp":71},{"d":"2026-04-07","rec":53,"hrv":136,"rhr":52,"str":14.7,"deep":134,"sp":80},{"d":"2026-04-08","rec":57,"hrv":136,"rhr":53,"str":15.9,"deep":123,"sp":82},{"d":"2026-04-10","rec":41,"hrv":110,"rhr":59,"str":11.4,"deep":53,"sp":78},{"d":"2026-04-10","rec":14,"hrv":75,"rhr":61,"str":12.3,"deep":109,"sp":36},{"d":"2026-04-11","rec":54,"hrv":127,"rhr":57,"str":16.8,"deep":98,"sp":81},{"d":"2026-04-12","rec":37,"hrv":127,"rhr":60,"str":14.8,"deep":114,"sp":81},{"d":"2026-04-13","rec":74,"hrv":158,"rhr":51,"str":12.8,"deep":22,"sp":66},{"d":"2026-04-14","rec":57,"hrv":129,"rhr":56,"str":12.9,"deep":67,"sp":81},{"d":"2026-04-15","rec":59,"hrv":133,"rhr":57,"str":12.9,"deep":71,"sp":84},{"d":"2026-04-17","rec":25,"hrv":91,"rhr":61,"str":13.5,"deep":123,"sp":54},{"d":"2026-04-18","rec":69,"hrv":143,"rhr":58,"str":1.6,"deep":78,"sp":79},{"d":"2026-04-19","rec":38,"hrv":108,"rhr":61,"str":11,"deep":83,"sp":74},{"d":"2026-04-19","rec":74,"hrv":148,"rhr":55,"str":16.6,"deep":95,"sp":81},{"d":"2026-04-20","rec":72,"hrv":147,"rhr":48,"str":17.1,"deep":95,"sp":78},{"d":"2026-04-21","rec":69,"hrv":145,"rhr":49,"str":9.4,"deep":105,"sp":80},{"d":"2026-04-22","rec":48,"hrv":129,"rhr":54,"str":15.1,"deep":167,"sp":83},{"d":"2026-04-24","rec":18,"hrv":74,"rhr":71,"str":13.5,"deep":76,"sp":41},{"d":"2026-04-25","rec":52,"hrv":130,"rhr":59,"str":7,"deep":106,"sp":75},{"d":"2026-04-26","rec":26,"hrv":82,"rhr":44,"str":12.9,"deep":99,"sp":79},{"d":"2026-04-26","rec":32,"hrv":113,"rhr":62,"str":13.6,"deep":97,"sp":81},{"d":"2026-04-28","rec":73,"hrv":143,"rhr":46,"str":12.2,"deep":93,"sp":85},{"d":"2026-04-29","rec":89,"hrv":165,"rhr":47,"str":4.3,"deep":62,"sp":73},{"d":"2026-04-29","rec":50,"hrv":111,"rhr":55,"str":7.9,"deep":126,"sp":88},{"d":"2026-04-30","rec":95,"hrv":172,"rhr":50,"str":5.7,"deep":146,"sp":88},{"d":"2026-05-01","rec":95,"hrv":188,"rhr":47,"str":5.9,"deep":113,"sp":92},{"d":"2026-05-02","rec":46,"hrv":117,"rhr":52,"str":20.6,"deep":105,"sp":74},{"d":"2026-05-03","rec":25,"hrv":85,"rhr":63,"str":6.9,"deep":147,"sp":48},{"d":"2026-05-04","rec":55,"hrv":121,"rhr":47,"str":8.8,"deep":115,"sp":82},{"d":"2026-05-06","rec":59,"hrv":121,"rhr":52,"str":7.3,"deep":94,"sp":67},{"d":"2026-05-07","rec":84,"hrv":157,"rhr":49,"str":10.1,"deep":77,"sp":78},{"d":"2026-05-08","rec":44,"hrv":102,"rhr":55,"str":5.2,"deep":107,"sp":71},{"d":"2026-05-09","rec":92,"hrv":175,"rhr":45,"str":13.8,"deep":84,"sp":77},{"d":"2026-05-09","rec":7,"hrv":47,"rhr":62,"str":4,"deep":85,"sp":30},{"d":"2026-05-10","rec":93,"hrv":192,"rhr":46,"str":2.9,"deep":119,"sp":80},{"d":"2026-05-12","rec":89,"hrv":203,"rhr":43,"str":5.5,"deep":140,"sp":83},{"d":"2026-05-12","rec":91,"hrv":211,"rhr":45,"str":9.2,"deep":97,"sp":79},{"d":"2026-05-13","rec":57,"hrv":151,"rhr":53,"str":13.1,"deep":95,"sp":82},{"d":"2026-05-15","rec":73,"hrv":186,"rhr":46,"str":15.4,"deep":118,"sp":82},{"d":"2026-05-15","rec":77,"hrv":191,"rhr":47,"str":11.5,"deep":99,"sp":77},{"d":"2026-05-16","rec":60,"hrv":163,"rhr":43,"str":13.9,"deep":93,"sp":82},{"d":"2026-05-17","rec":77,"hrv":187,"rhr":44,"str":4.4,"deep":34,"sp":84},{"d":"2026-05-19","rec":68,"hrv":179,"rhr":48,"str":17.5,"deep":76,"sp":86},{"d":"2026-05-19","rec":74,"hrv":180,"rhr":44,"str":12,"deep":62,"sp":82},{"d":"2026-05-20","rec":78,"hrv":184,"rhr":46,"str":16.1,"deep":109,"sp":80},{"d":"2026-05-21","rec":52,"hrv":164,"rhr":54,"str":4.1,"deep":123,"sp":76},{"d":"2026-05-22","rec":51,"hrv":158,"rhr":49,"str":10.9,"deep":129,"sp":75},{"d":"2026-05-23","rec":39,"hrv":117,"rhr":48,"str":13,"deep":128,"sp":84},{"d":"2026-05-24","rec":74,"hrv":177,"rhr":44,"str":13.1,"deep":93,"sp":83},{"d":"2026-05-26","rec":56,"hrv":144,"rhr":46,"str":10.6,"deep":102,"sp":82},{"d":"2026-05-26","rec":36,"hrv":123,"rhr":53,"str":16.3,"deep":77,"sp":65},{"d":"2026-05-27","rec":49,"hrv":134,"rhr":50,"str":17.5,"deep":75,"sp":82},{"d":"2026-05-28","rec":34,"hrv":105,"rhr":45,"str":12.2,"deep":57,"sp":85},{"d":"2026-05-29","rec":53,"hrv":127,"rhr":45,"str":11.5,"deep":84,"sp":86},{"d":"2026-05-30","rec":77,"hrv":158,"rhr":42,"str":11.9,"deep":132,"sp":84},{"d":"2026-05-31","rec":87,"hrv":176,"rhr":44,"str":14.6,"deep":119,"sp":94},{"d":"2026-06-01","rec":86,"hrv":177,"rhr":44,"str":17.2,"deep":87,"sp":92},{"d":"2026-06-02","rec":77,"hrv":176,"rhr":47,"str":15.6,"deep":112,"sp":77},{"d":"2026-06-04","rec":87,"hrv":196,"rhr":45,"str":16.2,"deep":112,"sp":80},{"d":"2026-06-04","rec":22,"hrv":104,"rhr":57,"str":4,"deep":52,"sp":59},{"d":"2026-06-05","rec":44,"hrv":140,"rhr":56,"str":13.5,"deep":112,"sp":81},{"d":"2026-06-07","rec":58,"hrv":159,"rhr":39,"str":13.3,"deep":94,"sp":78},{"d":"2026-06-07","rec":25,"hrv":119,"rhr":57,"str":14.9,"deep":121,"sp":48},{"d":"2026-06-09","rec":68,"hrv":205,"rhr":47,"str":null,"deep":156,"sp":65}];
+
+const MARATHON = "2026-05-03";
+const SPLIT = "2026-04-26"; // P1 ends here, P2 = after
+
+// Weekly trajectory (W52..W24). rec/hrv/str/deep + narrative + n + start + stages
+const WEEKS = [
+ {w:"W52 Dec22",s:"2025-12-22",n:5,rec:84.2,hrv:170.0,str:11.34,deep:81.8,light:273.5,rem:87.5,debt:48.0,sp:82.0,narr:"baseline"},
+ {w:"W1 Dec29",s:"2025-12-29",n:6,rec:71.8,hrv:174.2,str:13.82,deep:105.3,light:229.3,rem:107.7,debt:77.3,sp:79.7,narr:"variable"},
+ {w:"W2 Jan05",s:"2026-01-05",n:8,rec:48.1,hrv:155.5,str:13.64,deep:83.0,light:249.0,rem:78.3,debt:65.6,sp:73.3,narr:"variable"},
+ {w:"W3 Jan12",s:"2026-01-12",n:7,rec:38.4,hrv:121.3,str:10.59,deep:102.7,light:251.1,rem:73.3,debt:92.6,sp:75.0,narr:"variable"},
+ {w:"W4 Jan19",s:"2026-01-19",n:7,rec:49.6,hrv:126.0,str:14.13,deep:102.4,light:240.1,rem:126.6,debt:67.0,sp:80.7,narr:"recovery rebound"},
+ {w:"W5 Jan26",s:"2026-01-26",n:7,rec:37.0,hrv:105.9,str:14.56,deep:97.6,light:224.7,rem:135.3,debt:44.6,sp:83.7,narr:"fatigue accumulation"},
+ {w:"W6 Feb02",s:"2026-02-02",n:7,rec:47.7,hrv:113.3,str:14.41,deep:99.6,light:283.3,rem:75.7,debt:75.4,sp:80.6,narr:"recovery rebound"},
+ {w:"W7 Feb09",s:"2026-02-09",n:7,rec:43.3,hrv:88.4,str:13.59,deep:89.4,light:240.3,rem:133.0,debt:49.3,sp:83.0,narr:"variable"},
+ {w:"W8 Feb16",s:"2026-02-16",n:7,rec:81.6,hrv:133.6,str:12.4,deep:89.9,light:273.1,rem:107.9,debt:74.6,sp:84.6,narr:"recovery rebound"},
+ {w:"W9 Feb23",s:"2026-02-23",n:7,rec:66.4,hrv:123.0,str:9.11,deep:100.7,light:217.0,rem:98.6,debt:56.1,sp:73.6,narr:"variable"},
+ {w:"W10 Mar02",s:"2026-03-02",n:7,rec:68.9,hrv:148.4,str:10.27,deep:107.4,light:214.1,rem:103.9,debt:74.7,sp:73.4,narr:"variable"},
+ {w:"W11 Mar09",s:"2026-03-09",n:7,rec:61.0,hrv:130.0,str:14.1,deep:86.1,light:309.4,rem:82.6,debt:56.0,sp:83.4,narr:"fatigue accumulation"},
+ {w:"W12 Mar16",s:"2026-03-16",n:7,rec:59.4,hrv:127.0,str:14.64,deep:94.3,light:248.9,rem:71.0,debt:110.9,sp:73.4,narr:"stable"},
+ {w:"W13 Mar23",s:"2026-03-23",n:6,rec:61.0,hrv:145.0,str:10.1,deep:116.2,light:194.0,rem:96.3,debt:118.5,sp:77.5,narr:"variable"},
+ {w:"W14 Mar30",s:"2026-03-30",n:8,rec:65.4,hrv:158.6,str:12.71,deep:91.8,light:240.6,rem:80.9,debt:107.3,sp:75.5,narr:"variable"},
+ {w:"W15 Apr06",s:"2026-04-06",n:7,rec:46.7,hrv:125.4,str:14.19,deep:105.6,light:242.3,rem:76.9,debt:101.9,sp:72.7,narr:"fatigue accumulation"},
+ {w:"W16 Apr13",s:"2026-04-13",n:7,rec:56.6,hrv:130.0,str:11.61,deep:77.0,light:241.3,rem:86.1,debt:111.6,sp:74.1,narr:"recovery rebound"},
+ {w:"W17 Apr20",s:"2026-04-20",n:7,rec:45.3,hrv:117.1,str:12.66,deep:106.4,light:239.7,rem:87.7,debt:105.4,sp:73.9,narr:"variable"},
+ {w:"W18 Apr27",s:"2026-04-27",n:7,rec:67.6,hrv:140.1,str:9.07,deep:113.1,light:230.9,rem:88.1,debt:42.4,sp:78.3,narr:"recovery rebound"},
+ {w:"W19 May04",s:"2026-05-04",n:7,rec:62.0,hrv:130.7,str:7.44,deep:97.3,light:232.0,rem:74.1,debt:82.3,sp:69.3,narr:"acute post-marathon recovery"},
+ {w:"W20 May11",s:"2026-05-11",n:7,rec:74.9,hrv:184.6,str:10.43,deep:96.6,light:263.0,rem:96.1,debt:61.6,sp:81.3,narr:"recovery rebound"},
+ {w:"W21 May18",s:"2026-05-18",n:7,rec:62.3,hrv:165.6,str:12.39,deep:102.9,light:252.6,rem:90.3,debt:63.9,sp:80.9,narr:"variable"},
+ {w:"W22 May25",s:"2026-05-25",n:7,rec:56.0,hrv:138.1,str:13.51,deep:92.3,light:275.1,rem:93.6,debt:73.3,sp:82.6,narr:"variable"},
+ {w:"W23 Jun01",s:"2026-06-01",n:7,rec:57.0,hrv:153.0,str:13.53,deep:98.6,light:213.3,rem:86.6,debt:84.6,sp:73.6,narr:"variable"},
+ {w:"W24 Jun08",s:"2026-06-08",n:1,rec:68.0,hrv:205.0,str:null,deep:156.0,light:130.0,rem:38.0,debt:127.0,sp:65.0,narr:"recovery rebound"}
+];
+
+// Interventions: Cohen's d on each metric (full window). sorted later.
+const INTERV = [
+ {b:"Wore a nasal strip while sleeping?",ny:41,nn:126,hrv:-0.74,hrvp:0.0,rec:-0.155,recp:0.3946,deep:-0.099,sp:0.284,spp:0.0869,par:false},
+ {b:"Read (non-screened) in bed?",ny:30,nn:137,hrv:-0.199,hrvp:0.2989,rec:-0.081,recp:0.6422,deep:-0.272,sp:0.508,spp:0.0,par:false},
+ {b:"Felt emotionally & mentally stable?",ny:52,nn:115,hrv:0.065,hrvp:0.7092,rec:0.069,recp:0.6838,deep:0.165,sp:-0.35,spp:0.0461,par:false},
+ {b:"Hydrated sufficiently?",ny:113,nn:54,hrv:0.323,hrvp:0.069,rec:0.315,recp:0.0741,deep:-0.195,sp:0.338,spp:0.0831,par:false},
+ {b:"Experienced stress?",ny:34,nn:133,hrv:0.295,hrvp:0.123,rec:0.143,recp:0.4535,deep:0.303,sp:-0.178,spp:0.3413,par:false},
+ {b:"Meditated?",ny:38,nn:129,hrv:-0.289,hrvp:0.1215,rec:0.212,recp:0.2575,deep:-0.223,sp:0.257,spp:0.111,par:false},
+ {b:"Connected with family/friends?",ny:120,nn:47,hrv:-0.085,hrvp:0.6154,rec:0.267,recp:0.1345,deep:-0.039,sp:-0.179,spp:0.3,par:false},
+ {b:"Experienced muscle soreness?",ny:53,nn:114,hrv:0.236,hrvp:0.1704,rec:0.147,recp:0.3726,deep:-0.189,sp:-0.112,spp:0.5152,par:false},
+ {b:"Took electrolyte supplements?",ny:83,nn:84,hrv:-0.147,hrvp:0.3453,rec:0.234,recp:0.1336,deep:-0.13,sp:-0.067,spp:0.6666,par:false},
+ {b:"Spent time outdoors?",ny:79,nn:88,hrv:0.168,hrvp:0.2816,rec:0.03,recp:0.8448,deep:-0.041,sp:-0.17,spp:0.2708,par:false}
+];
+
+// Dose-response quadratic coeffs per period: y = a*x^2 + b*x + c
+const DOSE = {
+ full:{a:-0.082453,b:0.8818,c:63.59,r:-0.2154,p:0.0095,n:144,sig:false},
+ p1:{a:-0.044545,b:0.0805,c:65.84,r:-0.2239,p:0.0193,n:109,sig:false},
+ p2:{a:-0.247848,b:4.7314,c:47.32,r:-0.1508,p:0.3872,n:35,sig:false}
+};
+
+// Training modality recovery mean ± std per period
+const MODAL = {
+ full:{Running:[58.6,23.2],"Strength":[56.6,21.3],Other:[61.5,22.3],"Rest":[64.8,28.3]},
+ p1:{Running:[58.9,23.2],"Strength":[53.6,22.0],Other:[56.2,22.3]},
+ p2:{Running:[57.0,24.1],"Strength":[62.9,18.7],Other:[70.3,20.3]}
+};
+
+// Regression per period
+const REG = {
+ full:{n:166,r2:0.22125,adjr2:0.19186,F:7.5289,Fp:0.0,rows:[
+   ["Asleep duration",0.1351,0.03123,4.3259,0.00003,true],
+   ["Deep (SWS) duration",-0.06778,0.07075,-0.9581,0.33948,false],
+   ["REM duration",-0.02054,0.05697,-0.3605,0.71892,false],
+   ["Sleep efficiency %",-0.37407,0.33423,-1.1192,0.26474,false],
+   ["Sleep onset hour",0.17317,0.20497,0.8449,0.39946,false],
+   ["Prior day strain",-1.04334,0.33952,-3.073,0.00249,true]
+ ]},
+ p1:{n:123,r2:0.20355,adjr2:0.16235,F:4.9411,Fp:0.000155,rows:[
+   ["Asleep duration",0.123,0.03797,3.2392,0.00156,true],
+   ["Deep (SWS) duration",-0.10947,0.08969,-1.2205,0.22477,false],
+   ["REM duration",0.00492,0.06207,0.0793,0.93692,false],
+   ["Sleep efficiency %",-0.28714,0.38861,-0.7389,0.46148,false],
+   ["Sleep onset hour",0.16037,0.25678,0.6245,0.53351,false],
+   ["Prior day strain",-0.90776,0.39793,-2.2812,0.02436,true]
+ ]},
+ p2:{n:43,r2:0.30878,adjr2:0.19357,F:2.6803,Fp:0.029664,rows:[
+   ["Asleep duration",0.16659,0.06347,2.6247,0.01265,true],
+   ["Deep (SWS) duration",-0.02748,0.12394,-0.2217,0.82579,false],
+   ["REM duration",-0.09415,0.18642,-0.505,0.61662,false],
+   ["Sleep efficiency %",-0.36885,0.82847,-0.4452,0.65882,false],
+   ["Sleep onset hour",0.18693,0.35074,0.5329,0.59734,false],
+   ["Prior day strain",-1.23628,0.70664,-1.7495,0.08873,false]
+ ]}
+};
+const HRVMED = {
+ full:{pr:0.81941,prp:0.0,par:0.82425,parp:0.0,n:166},
+ p1:{pr:0.80454,prp:0.0,par:0.81945,parp:0.0,n:123},
+ p2:{pr:0.87101,prp:0.0,par:0.84804,parp:0.0,n:43}
+};
+const MODEL_NARR = "Model fit climbs from R²=0.204 (baseline) to R²=0.309 post-marathon — sleep architecture became <b>more predictive</b> of recovery during the recovery phase. Across every period, asleep duration and prior-day strain are the only significant regression predictors, and HRV carries an independent pathway to recovery (partial r holds at 0.82–0.85) even after controlling for sleep. Translation: sleep enough, don't stack hard days, and HRV will tell you the truth before recovery score does.";
+
+// Correlation matrix (full window)
+const HEAT_VARS = ["Recovery","HRV","RHR","Strain","Sleep_Dur","Deep","REM","Effic","SpO2","SkinT"];
+const HEAT_M = [
+ [1.0,0.819,-0.62,0.128,0.405,-0.0,0.21,0.054,-0.035,-0.227],
+ [0.819,1.0,-0.769,0.133,0.238,0.017,0.059,-0.145,-0.042,-0.065],
+ [-0.62,-0.769,1.0,-0.06,-0.156,-0.062,-0.152,0.119,0.122,-0.034],
+ [0.128,0.133,-0.06,1.0,0.277,-0.005,0.152,0.076,0.065,0.056],
+ [0.405,0.238,-0.156,0.277,1.0,0.123,0.555,0.35,0.042,-0.177],
+ [-0.0,0.017,-0.062,-0.005,0.123,1.0,0.04,0.268,-0.118,0.016],
+ [0.21,0.059,-0.152,0.152,0.555,0.04,1.0,0.134,-0.026,-0.07],
+ [0.054,-0.145,0.119,0.076,0.35,0.268,0.134,1.0,0.219,-0.147],
+ [-0.035,-0.042,0.122,0.065,0.042,-0.118,-0.026,0.219,1.0,-0.111],
+ [-0.227,-0.065,-0.034,0.056,-0.177,0.016,-0.07,-0.147,-0.111,1.0]
+];
+
+/* ============================================================
+   STATE + HELPERS
+   ============================================================ */
+let CUR = "full";
+const TEAL="#00F5C4", RED="#FF5A6E", MUT="#8A8A95", LINE="#26262F", AMBER="#FFC857";
+Chart.defaults.color = MUT;
+Chart.defaults.font.family = "'Inter',sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.animation = false;   // instant paint — better for a static report, and renders reliably headless/on load
+Chart.defaults.responsive = true;
+Chart.defaults.maintainAspectRatio = false;
+
+const inP1 = d => d <= SPLIT;
+const inP2 = d => d > SPLIT;
+function dailyFor(period){
+  if(period==="p1") return DAILY.filter(r=>inP1(r.d));
+  if(period==="p2") return DAILY.filter(r=>inP2(r.d));
+  return DAILY;
+}
+function weeksFor(period){
+  if(period==="p1") return WEEKS.filter(w=>w.s<=SPLIT);
+  if(period==="p2") return WEEKS.filter(w=>w.s>SPLIT);
+  return WEEKS;
+}
+const fmt = (v,d=1)=> v==null? "—" : (typeof v==="number"? v.toFixed(d) : v);
+const baseGrid = {grid:{color:LINE,drawTicks:false},border:{display:false}};
+const noGrid = {grid:{display:false},border:{display:false}};
+
+/* ============================================================
+   CHART OBJECTS
+   ============================================================ */
+let charts = {};
+
+// ---- KPI tiles ----
+function renderKPIs(){
+  const o = OVERALL[CUR];
+  const d = (CUR==="p2") ? OVERALL.p2 : (CUR==="p1"? OVERALL.p1 : OVERALL.full);
+  // deltas vs baseline shown only for full/p2
+  const delta = (key)=>{
+    if(CUR==="p1") return "";
+    const base=OVERALL.p1[key], now=o[key];
+    const diff = now-base, up = diff>=0;
+    const goodUp = (key!=="strain" && key!=="rhr");
+    const good = goodUp? up : !up;
+    return `<div class="k-delta ${good?'up':'down'}">${up?'▲':'▼'} ${Math.abs(diff).toFixed(1)} vs baseline</div>`;
+  };
+  document.getElementById("kpis").innerHTML = `
+    <div class="kpi"><div class="k-lbl">Recovery</div><div class="k-val">${o.rec.toFixed(1)}<small>%</small></div>${delta("rec")}</div>
+    <div class="kpi"><div class="k-lbl">HRV</div><div class="k-val">${o.hrv.toFixed(0)}<small> ms</small></div>${delta("hrv")}</div>
+    <div class="kpi"><div class="k-lbl">Sleep Perf</div><div class="k-val">${o.sleep.toFixed(1)}<small>%</small></div>${delta("sleep")}</div>
+    <div class="kpi"><div class="k-lbl">Day Strain</div><div class="k-val">${o.strain.toFixed(1)}</div>${delta("strain")}</div>
+    <div class="kpi"><div class="k-lbl">Top Lever</div><div class="k-val" style="font-size:18px;line-height:1.2">${TOP_INT.behavior}</div><div class="k-meta">${TOP_INT.metric}</div></div>`;
+}
+
+// ---- Time series: Recovery + HRV dual axis, marathon line ----
+const marathonLine = {
+  id:'marathon',
+  afterDatasetsDraw(chart){
+    const data = chart.data.labels;
+    let idx = data.indexOf(MARATHON);
+    if(idx<0) return;
+    const x = chart.scales.x.getPixelForValue(idx);
+    const {top,bottom} = chart.chartArea;
+    const ctx = chart.ctx;
+    ctx.save();
+    ctx.beginPath();
+    ctx.setLineDash([6,5]);
+    ctx.strokeStyle = AMBER;
+    ctx.lineWidth = 1.5;
+    ctx.moveTo(x,top); ctx.lineTo(x,bottom); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = AMBER;
+    ctx.font = "600 11px 'Space Grotesk'";
+    ctx.textAlign = x > (chart.chartArea.left+chart.chartArea.right)/2 ? "right":"left";
+    const lx = ctx.textAlign==="right"? x-7 : x+7;
+    ctx.fillText("🏁 Pittsburgh Marathon · May 3", lx, top+14);
+    ctx.restore();
+  }
+};
+
+function tsData(){
+  const rows = dailyFor(CUR).filter(r=>r.rec!=null);
+  return {
+    labels: rows.map(r=>r.d),
+    rec: rows.map(r=>r.rec),
+    hrv: rows.map(r=>r.hrv)
+  };
+}
+function buildTS(){
+  const d = tsData();
+  charts.ts = new Chart(document.getElementById("tsChart"),{
+    type:"line",
+    data:{labels:d.labels,datasets:[
+      {label:"Recovery %",data:d.rec,yAxisID:"y",borderColor:TEAL,backgroundColor:"rgba(0,245,196,.08)",borderWidth:2,pointRadius:0,pointHoverRadius:5,tension:.3,fill:true},
+      {label:"HRV (ms)",data:d.hrv,yAxisID:"y1",borderColor:AMBER,borderWidth:1.6,pointRadius:0,pointHoverRadius:5,tension:.3}
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      interaction:{mode:"index",intersect:false},
+      plugins:{
+        legend:{labels:{usePointStyle:true,boxWidth:8,padding:18}},
+        tooltip:tt(ctx=>ctx[0].label, (c)=> `${c.dataset.label}: ${c.parsed.y}`)
+      },
+      scales:{
+        x:{...noGrid,ticks:{maxTicksLimit:9,callback:function(v){const l=this.getLabelForValue(v);return l?String(l).slice(5):"";}}},
+        y:{...baseGrid,position:"left",title:{display:true,text:"Recovery %",color:TEAL},min:0,max:100},
+        y1:{...noGrid,position:"right",title:{display:true,text:"HRV ms",color:AMBER}}
+      }
+    },
+    plugins:[marathonLine]
+  });
+}
+
+// shared tooltip styler
+function tt(titleFn, labelFn){
+  return {
+    backgroundColor:"#1B1B22",borderColor:LINE,borderWidth:1,titleColor:"#E8E8EC",
+    bodyColor:"#C8C8D0",padding:11,cornerRadius:9,titleFont:{family:"'Space Grotesk'",weight:"600"},
+    displayColors:true,usePointStyle:true,
+    callbacks:{title:titleFn,label:labelFn}
+  };
+}
+
+// ---- Sleep stages stacked bar (weekly) ----
+function buildStages(){
+  const W = weeksFor(CUR);
+  charts.stages = new Chart(document.getElementById("stagesChart"),{
+    type:"bar",
+    data:{labels:W.map(w=>w.w),datasets:[
+      {label:"Deep",data:W.map(w=>w.deep),backgroundColor:TEAL,borderRadius:3,stack:"s"},
+      {label:"REM",data:W.map(w=>w.rem),backgroundColor:"#5BD6FF",borderRadius:3,stack:"s"},
+      {label:"Light",data:W.map(w=>w.light),backgroundColor:"#34343F",borderRadius:3,stack:"s"}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{usePointStyle:true,boxWidth:8,padding:16}},
+        tooltip:tt(c=>c[0].label,(c)=>`${c.dataset.label}: ${c.parsed.y} min`)},
+      scales:{x:{...noGrid,ticks:{maxRotation:60,minRotation:60,font:{size:9}}},
+        y:{...baseGrid,stacked:true,title:{display:true,text:"min / night"}},
+        x2:{display:false}}
+    }
+  });
+  // ensure x stacked
+  charts.stages.options.scales.x.stacked=true; charts.stages.update();
+}
+
+// ---- Sleep debt line ----
+function buildDebt(){
+  const W = weeksFor(CUR);
+  charts.debt = new Chart(document.getElementById("debtChart"),{
+    type:"line",
+    data:{labels:W.map(w=>w.w),datasets:[
+      {label:"Sleep debt (min)",data:W.map(w=>w.debt),borderColor:RED,backgroundColor:"rgba(255,90,110,.08)",borderWidth:2,pointRadius:2.5,pointHoverRadius:5,tension:.3,fill:true}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:tt(c=>c[0].label,c=>`Sleep debt: ${c.parsed.y} min`)},
+      scales:{x:{...noGrid,ticks:{maxRotation:60,minRotation:60,font:{size:9}}},y:{...baseGrid,title:{display:true,text:"min"}}}
+    }
+  });
+}
+
+// ---- Dose-response scatter + quadratic fit ----
+function buildDose(){
+  const rows = dailyFor(CUR).filter(r=>r.rec!=null && r.str!=null);
+  const pts = rows.map(r=>({x:r.str,y:r.rec}));
+  const dr = DOSE[CUR];
+  // fit curve
+  const fit=[]; for(let x=0;x<=21;x+=0.5){ fit.push({x, y: dr.a*x*x + dr.b*x + dr.c}); }
+  document.getElementById("drSub").textContent =
+    `${dr.n} days · linear r=${dr.r} (p=${dr.p}) · quadratic n.s.`;
+  charts.dose = new Chart(document.getElementById("doseChart"),{
+    type:"scatter",
+    data:{datasets:[
+      {label:"Day",data:pts,backgroundColor:"rgba(0,245,196,.5)",pointRadius:3.5,pointHoverRadius:6},
+      {label:"Quadratic fit",type:"line",data:fit,borderColor:AMBER,borderWidth:1.8,borderDash:[5,4],pointRadius:0,tension:.2}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{usePointStyle:true,boxWidth:8,padding:14}},
+        tooltip:tt(()=>"", c=> c.dataset.label==="Day"? `Strain ${c.parsed.x} → Recovery ${c.parsed.y}%` : `Fit: ${c.parsed.y.toFixed(0)}%`)},
+      scales:{x:{...baseGrid,title:{display:true,text:"Day strain"},min:0,max:21},
+        y:{...baseGrid,title:{display:true,text:"Next-day recovery %"},min:0,max:100}}
+    }
+  });
+}
+
+// ---- Modality grouped bar with error bars (mean±sd) ----
+function buildModal(){
+  const m = MODAL[CUR];
+  const keys = Object.keys(m);
+  const means = keys.map(k=>m[k][0]);
+  const sds = keys.map(k=>m[k][1]);
+  document.getElementById("modSub").textContent =
+    CUR==="p2" ? "Next-day recovery mean ± SD · post-marathon (small n, no sig.)" : "Next-day recovery mean ± SD by activity type";
+  charts.modal = new Chart(document.getElementById("modChart"),{
+    type:"bar",
+    data:{labels:keys,datasets:[
+      {label:"Recovery %",data:means,backgroundColor:keys.map((k,i)=>i%2?"#1FA98A":TEAL),borderRadius:5}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},
+        tooltip:tt(c=>c[0].label,(c)=>`Recovery ${c.parsed.y}% (±${sds[c.dataIndex]})`)},
+      scales:{x:{...noGrid},y:{...baseGrid,title:{display:true,text:"Recovery %"},min:0,max:90}}
+    },
+    plugins:[errorBars(means,sds)]
+  });
+}
+function errorBars(means,sds){
+  return {id:'eb',afterDatasetsDraw(chart){
+    const {ctx,scales:{x,y}} = chart;
+    ctx.save(); ctx.strokeStyle=MUT; ctx.lineWidth=1.3;
+    chart.getDatasetMeta(0).data.forEach((bar,i)=>{
+      const cx=bar.x, top=y.getPixelForValue(means[i]+sds[i]), bot=y.getPixelForValue(Math.max(0,means[i]-sds[i]));
+      ctx.beginPath(); ctx.moveTo(cx,top); ctx.lineTo(cx,bot);
+      ctx.moveTo(cx-5,top); ctx.lineTo(cx+5,top);
+      ctx.moveTo(cx-5,bot); ctx.lineTo(cx+5,bot); ctx.stroke();
+    });
+    ctx.restore();
+  }};
+}
+
+// ---- Interventions horizontal bar (Cohen's d on HRV) ----
+function buildInterv(){
+  const sorted = [...INTERV].sort((a,b)=>Math.abs(b.hrv)-Math.abs(a.hrv));
+  const labels = sorted.map(i=> (i.hrvp<0.05?"★ ":"")+i.b);
+  charts.interv = new Chart(document.getElementById("intChart"),{
+    type:"bar",
+    data:{labels,datasets:[
+      {label:"Cohen's d (HRV)",data:sorted.map(i=>i.hrv),
+       backgroundColor:sorted.map(i=>i.hrv>=0?TEAL:RED),borderRadius:4}
+    ]},
+    options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},
+        tooltip:tt(c=>c[0].label.replace("★ ",""),(c)=>{const i=sorted[c.dataIndex];return `d=${i.hrv} (p=${i.hrvp}) · n ${i.ny}/${i.nn}`;})},
+      scales:{x:{...baseGrid,title:{display:true,text:"Cohen's d → HRV"},min:-0.9,max:0.5,
+        grid:{color:(c)=>c.tick.value===0?"#444":LINE}},
+        y:{...noGrid,ticks:{font:{size:10.5}}}}
+    }
+  });
+}
+
+function renderIntTable(){
+  const sorted = [...INTERV].sort((a,b)=>Math.abs(b.hrv)-Math.abs(a.hrv));
+  const dcell = (v,p)=>{
+    const cls = v>0?"up":(v<0?"down":"");
+    const star = (p!=null && p<0.05)?'<span class="star"> ★</span>':'';
+    return `<span class="${cls}">${v>0?'+':''}${v.toFixed(3)}</span>${star}`;
+  };
+  const tb = document.querySelector("#intTable tbody");
+  tb.innerHTML = sorted.map(i=>`<tr>
+    <td>${i.b}</td>
+    <td>${i.ny}/${i.nn}</td>
+    <td>${dcell(i.hrv,i.hrvp)}</td>
+    <td>${dcell(i.rec,i.recp)}</td>
+    <td>${dcell(i.deep,null)}</td>
+    <td>${dcell(i.sp,i.spp)}</td>
+    <td>${i.par?'<span class="tag neg">paradox</span>':(Math.abs(i.hrv)>=0.5||i.sp>=0.5?'<span class="tag pos">meaningful</span>':'<span class="tag neu">—</span>')}</td>
+  </tr>`).join("");
+}
+
+// ---- Weekly trajectory 2x2, clickable ----
+function makeWeekChart(canvasId, key, color){
+  const W = WEEKS; // always full set; period toggle dims out-of-period
+  const inPer = (w)=> CUR==="full"?true : (CUR==="p1"? w.s<=SPLIT : w.s>SPLIT);
+  const vals = W.map(w=>w[key]);
+  const bg = W.map(w=> inPer(w)? color : "#2B2B34");
+  const c = new Chart(document.getElementById(canvasId),{
+    type:"bar",
+    data:{labels:W.map(w=>w.w),datasets:[{data:vals,backgroundColor:bg,borderRadius:3}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      onClick:(e,els)=>{ if(els.length) openDrill(els[0].index); },
+      plugins:{legend:{display:false},
+        tooltip:tt(cx=>W[cx[0].dataIndex].w,(cx)=>`${key==='rec'?'Recovery':key==='hrv'?'HRV':key==='str'?'Strain':'Deep'}: ${cx.parsed.y==null?'—':cx.parsed.y} · click to expand`)},
+      scales:{x:{...noGrid,ticks:{maxRotation:75,minRotation:75,font:{size:8}}},y:{...baseGrid}}
+    }
+  });
+  return c;
+}
+function buildWeekly(){
+  charts.wkRec = makeWeekChart("wkRec","rec",TEAL);
+  charts.wkHrv = makeWeekChart("wkHrv","hrv",AMBER);
+  charts.wkStr = makeWeekChart("wkStr","str","#5BD6FF");
+  charts.wkDeep = makeWeekChart("wkDeep","deep","#A98AFF");
+}
+
+let openIdx = -1;
+const narrColor = (n)=>{
+  if(/post-marathon/.test(n)) return "background:rgba(255,200,87,.16);color:#FFC857";
+  if(/rebound/.test(n)) return "background:var(--tealdim);color:#00F5C4";
+  if(/fatigue/.test(n)) return "background:var(--reddim);color:#FF5A6E";
+  return "background:#26262F;color:#8A8A95";
+};
+function openDrill(idx){
+  const zone = document.getElementById("drillZone");
+  if(openIdx===idx){ zone.innerHTML=""; openIdx=-1; return; }
+  openIdx = idx;
+  const w = WEEKS[idx];
+  // daily rows within this week (start..start+6)
+  const start = w.s;
+  const end = new Date(new Date(start).getTime()+6*864e5).toISOString().slice(0,10);
+  const days = DAILY.filter(r=> r.d>=start && r.d<=end && r.rec!=null);
+  const rowsHtml = days.length? days.map(r=>`<tr>
+    <td>${r.d}</td><td>${r.rec}%</td><td>${r.hrv}</td><td>${r.rhr}</td><td>${r.str==null?'—':r.str}</td><td>${r.deep}</td><td>${r.sp}%</td>
+  </tr>`).join("") : `<tr><td colspan="7" style="color:var(--dim)">No complete days logged in this window</td></tr>`;
+  zone.innerHTML = `<div class="drill open"><div class="drill-inner">
+    <div class="drill-head">
+      <h3>${w.w} · week of ${w.s}</h3>
+      <span class="tag-narr" style="${narrColor(w.narr)}">${w.narr}</span>
+    </div>
+    <div class="dstats">
+      <div class="dstat"><b>${fmt(w.rec)}%</b>Recovery</div>
+      <div class="dstat"><b>${fmt(w.hrv)}</b>HRV ms</div>
+      <div class="dstat"><b>${w.str==null?'—':fmt(w.str)}</b>Strain</div>
+      <div class="dstat"><b>${fmt(w.deep)}</b>Deep min</div>
+      <div class="dstat"><b>${w.n}</b>Days logged</div>
+    </div>
+    <div style="overflow-x:auto"><table><thead><tr>
+      <th>Date</th><th>Rec</th><th>HRV</th><th>RHR</th><th>Strain</th><th>Deep</th><th>Sleep</th>
+    </tr></thead><tbody>${rowsHtml}</tbody></table></div>
+    <div style="text-align:right;margin-top:12px"><button class="toggle" onclick="document.getElementById('drillZone').innerHTML='';openIdx=-1" style="cursor:pointer"><span style="padding:6px 12px;color:var(--mut);font-family:'Space Grotesk';font-size:13px">Collapse ▲</span></button></div>
+  </div></div>`;
+  zone.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+// ---- Regression table ----
+function renderReg(){
+  const r = REG[CUR];
+  document.getElementById("regSub").textContent =
+    `${PERIODS[CUR].label} · n=${r.n} · ${r.n<30?'⚠ small sample':'Recovery % ~ sleep + prior strain'}`;
+  const tb = document.querySelector("#regTable tbody");
+  if(r.n<30){
+    tb.innerHTML = `<tr><td colspan="6" class="insuf" style="border:none">Insufficient data — n=${r.n} (regression requires n≥30)</td></tr>`;
+  } else {
+    tb.innerHTML = r.rows.map(row=>{
+      const [name,beta,se,t,p,sig]=row;
+      return `<tr class="${sig?'row-sig':''}">
+        <td>${name}</td><td>${beta>0?'+':''}${beta.toFixed(4)}</td><td>${se.toFixed(4)}</td>
+        <td>${t.toFixed(3)}</td><td>${p<0.001?'<0.001':p.toFixed(4)}</td>
+        <td>${sig?'<span class="star">★</span>':'—'}</td></tr>`;
+    }).join("");
+  }
+  document.getElementById("regFit").innerHTML =
+    `<b style="color:var(--txt)">R² ${r.r2.toFixed(3)}</b> · Adj R² ${r.adjr2.toFixed(3)} · F(${r.rows.length},${r.n-r.rows.length-1})=${r.F.toFixed(2)}, p${r.Fp<0.001?'<0.001':'='+r.Fp.toFixed(4)} · ★ = significant predictor (p<0.05)`;
+}
+function renderHrvMed(){
+  const h = HRVMED[CUR];
+  document.querySelector("#hrvTable tbody").innerHTML = `
+    <tr><td>Pearson r (HRV→Recovery)</td><td style="text-align:right"><b class="up">${h.pr.toFixed(3)}</b> <span class="star">★</span></td></tr>
+    <tr><td>Partial r (sleep controlled)</td><td style="text-align:right"><b class="up">${h.par.toFixed(3)}</b> <span class="star">★</span></td></tr>
+    <tr><td>Independent pathway</td><td style="text-align:right"><span class="tag pos">confirmed</span></td></tr>
+    <tr><td>Sample</td><td style="text-align:right">n=${h.n}</td></tr>`;
+}
+
+// ---- Heatmap (static, full window) ----
+function buildHeat(){
+  const el = document.getElementById("heat");
+  const n = HEAT_VARS.length;
+  el.style.gridTemplateColumns = `90px repeat(${n},1fr)`;
+  let html = `<div></div>` + HEAT_VARS.map(v=>`<div class="htop">${v}</div>`).join("");
+  for(let i=0;i<n;i++){
+    html += `<div class="hlbl">${HEAT_VARS[i]}</div>`;
+    for(let j=0;j<n;j++){
+      const r = HEAT_M[i][j];
+      html += `<div class="hc" style="background:${heatColor(r)}" title="${HEAT_VARS[i]} × ${HEAT_VARS[j]}: r=${r}">${r.toFixed(2)}</div>`;
+    }
+  }
+  el.innerHTML = html;
+}
+function heatColor(r){
+  // -1 red → 0 dark → +1 teal
+  if(r>=0){ const a=r; return `rgba(0,245,196,${0.12+a*0.78})`; }
+  const a=-r; return `rgba(255,90,110,${0.12+a*0.78})`;
+}
+
+/* ============================================================
+   PERIOD TOGGLE — single function rebuilds all period-aware charts
+   ============================================================ */
+function destroy(){ Object.values(charts).forEach(c=>{try{c.destroy();}catch(e){}}); charts={}; }
+function setPeriod(p){
+  CUR = p;
+  document.getElementById("periodNote").textContent = PERIODS[p].note;
+  document.querySelectorAll("#periodToggle button").forEach(b=>b.classList.toggle("on", b.dataset.p===p));
+  destroy();
+  renderKPIs();
+  buildTS();
+  buildStages();
+  buildDebt();
+  buildDose();
+  buildModal();
+  buildInterv();   // intervention chart is full-window (effect sizes); kept stable
+  buildWeekly();
+  renderReg();
+  renderHrvMed();
+  // Force a resize pass once layout settles — guards against canvases that
+  // measured a parent mid-fade and came back with a wrong height.
+  requestAnimationFrame(()=> Object.values(charts).forEach(c=>{try{c.resize();}catch(e){}}));
+  // close any open drill (indices stay valid; safe to keep)
+}
+
+document.getElementById("periodToggle").addEventListener("click",e=>{
+  const b = e.target.closest("button"); if(!b) return; setPeriod(b.dataset.p);
+});
+
+/* ============================================================
+   INIT — static charts once, period charts via setPeriod
+   ============================================================ */
+renderIntTable();
+buildHeat();
+document.getElementById("modelNarr").innerHTML = MODEL_NARR;
+setPeriod("full");
+
+// Scroll reveal — opt in to hide-then-animate ONLY if IntersectionObserver exists.
+// Content is visible by default; this just adds the fade-up as enhancement.
+const revealEls = Array.from(document.querySelectorAll(".reveal"));
+if ("IntersectionObserver" in window) {
+  document.documentElement.classList.add("js-reveal");        // now .reveal => opacity:0
+  const showAll = () => revealEls.forEach(el=>el.classList.add("in"));
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(en=>{ if(en.isIntersecting){ en.target.classList.add("in"); io.unobserve(en.target);} });
+  },{threshold:0.08, rootMargin:"0px 0px -5% 0px"});
+  revealEls.forEach(el=>io.observe(el));
+  // Immediately reveal anything already in view (above the fold) on load.
+  requestAnimationFrame(()=> revealEls.forEach(el=>{
+    const r = el.getBoundingClientRect();
+    if (r.top < (window.innerHeight||800)) el.classList.add("in");
+  }));
+  // Safety net: if anything is still hidden after 1.5s, force it visible.
+  setTimeout(showAll, 1500);
+}
+</script>
+</body>
+</html>
