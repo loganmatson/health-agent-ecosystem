@@ -173,6 +173,8 @@ Each agent is a Claude Code skill — a structured markdown prompt file that def
 
 [View the full interactive showcase →](index.html)
 
+[Deep-dive showcase — 9-agent system walkthrough →](health-ecosystem-showcase.html)
+
 ---
 
 Built by [Logan Matson](https://www.linkedin.com/in/loganmatson) · Powered by [Claude Code](https://claude.ai/code)
