@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Health Agent Ecosystem — Production Multi-Agent System</title>
+<style>
+  :root {
+    --bg: #0a0d13;
+    --panel: #10141d;
+    --panel-2: #141927;
+    --border: #1e2535;
+    --border-bright: #2c3650;
+    --text: #cdd6e4;
+    --text-dim: #7d8aa0;
+    --text-faint: #56627a;
+    --violet: #a78bfa;   /* optimize-week */
+    --green: #5cd99a;    /* gordon-ramsay */
+    --teal: #00f5c4;     /* whoop-report */
+    --amber: #fbbf24;    /* calendar */
+    --red: #f87171;      /* neurologist */
+    --blue: #60a5fa;     /* alfred */
+    --cyan: #67e8f9;     /* managed-memory */
+    --pink: #f0abfc;     /* meal-log-update */
+    --sand: #d6bb8a;     /* fridge-raid */
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 70px; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16.5px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  ::selection { background: rgba(0,245,196,.25); }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(10,13,19,.92); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 4px;
+    padding: 12px 28px; font-family: var(--mono); font-size: 12.5px;
+    overflow-x: auto; white-space: nowrap;
+  }
+  nav .brand { color: var(--teal); margin-right: 18px; font-weight: 600; }
+  nav .brand::before { content: "❯ "; color: var(--text-faint); }
+  nav a { color: var(--text-dim); text-decoration: none; padding: 4px 11px; border-radius: 5px; }
+  nav a:hover { color: var(--text); background: var(--panel-2); }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+  section { padding: 64px 0 28px; }
+  code, .mono { font-family: var(--mono); font-size: .88em; }
+  code {
+    background: var(--panel-2); border: 1px solid var(--border);
+    padding: 1.5px 7px; border-radius: 5px; color: var(--teal); white-space: nowrap;
+  }
+  code.path { color: var(--cyan); }
+  code.red { color: var(--red); }
+
+  h1 { font-size: 44px; line-height: 1.15; letter-spacing: -.5px; }
+  h2 {
+    font-family: var(--mono); font-size: 14px; font-weight: 600; letter-spacing: 2.5px;
+    text-transform: uppercase; color: var(--teal); margin-bottom: 8px;
+  }
+  h2::before { content: "// "; color: var(--text-faint); }
+  h3 { font-size: 25px; margin-bottom: 18px; letter-spacing: -.3px; }
+  h4 { font-size: 17px; margin-bottom: 8px; }
+  p.lede { font-size: 19px; color: var(--text-dim); max-width: 860px; }
+  .section-intro { color: var(--text-dim); max-width: 880px; margin-bottom: 30px; }
+
+  /* hero */
+  .hero { padding: 130px 0 40px; }
+  .hero .sub { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-bottom: 18px; }
+  .hero .sub b { color: var(--amber); font-weight: 600; }
+  .hero h1 .accent { color: var(--teal); }
+  .statgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 38px; }
+  .stat {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .stat .num { font-family: var(--mono); font-size: 30px; font-weight: 700; color: var(--text); }
+  .stat .label { font-size: 13px; color: var(--text-dim); margin-top: 3px; line-height: 1.4; }
+
+  /* live state */
+  .livebar {
+    display: flex; align-items: center; gap: 12px; font-family: var(--mono); font-size: 13px;
+    color: var(--text-dim); margin-bottom: 22px; flex-wrap: wrap;
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 2s infinite; flex-shrink: 0; }
+  @keyframes pulse { 50% { opacity: .45; } }
+  .pipegrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .pipecard { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; }
+  .pipecard .pname { font-family: var(--mono); font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .pipecard .pmeta { font-family: var(--mono); font-size: 12px; color: var(--text-dim); line-height: 1.8; }
+  .pipecard .pmeta b { color: var(--text); font-weight: 600; }
+  .badge {
+    display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 700;
+    padding: 2px 8px; border-radius: 4px; letter-spacing: 1px; vertical-align: middle;
+  }
+  .badge.red { background: rgba(248,113,113,.14); color: var(--red); border: 1px solid rgba(248,113,113,.35); }
+  .badge.green { background: rgba(92,217,154,.12); color: var(--green); border: 1px solid rgba(92,217,154,.3); }
+  .badge.amber { background: rgba(251,191,36,.12); color: var(--amber); border: 1px solid rgba(251,191,36,.3); }
+  .badge.dim { background: var(--panel-2); color: var(--text-faint); border: 1px solid var(--border); }
+
+  .forecast { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin: 20px 0 8px; }
+  .fday { border-radius: 8px; padding: 12px 8px; text-align: center; font-family: var(--mono); border: 1px solid var(--border); }
+  .fday .d { font-size: 11px; color: var(--text-dim); }
+  .fday .lvl { font-size: 13px; font-weight: 700; margin-top: 4px; }
+  .fday.yellow { background: rgba(251,191,36,.09); border-color: rgba(251,191,36,.3); } .fday.yellow .lvl { color: var(--amber); }
+  .fday.redday { background: rgba(248,113,113,.12); border-color: rgba(248,113,113,.45); } .fday.redday .lvl { color: var(--red); }
+
+  .callout {
+    border-left: 3px solid var(--teal); background: var(--panel);
+    padding: 13px 18px; border-radius: 0 8px 8px 0; margin: 16px 0; font-size: 15px;
+  }
+  .callout b.tag { color: var(--teal); font-family: var(--mono); font-size: 12.5px; letter-spacing: 1px; text-transform: uppercase; display: block; margin-bottom: 3px; }
+  .callout.warn { border-color: var(--amber); } .callout.warn b.tag { color: var(--amber); }
+  .callout.danger { border-color: var(--red); } .callout.danger b.tag { color: var(--red); }
+
+  /* agents */
+  .agentgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .agent { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px 22px; }
+  .agent .aname { font-family: var(--mono); font-size: 15.5px; font-weight: 700; }
+  .agent .arole { font-size: 13px; color: var(--text-dim); font-family: var(--mono); margin: 2px 0 10px; }
+  .agent p { font-size: 14.5px; color: var(--text-dim); }
+  .agent p b { color: var(--text); font-weight: 600; }
+  .agent .files { margin-top: 10px; font-family: var(--mono); font-size: 11.5px; color: var(--text-faint); line-height: 2; }
+  .agent .files code { font-size: 11.5px; }
+
+  /* walkthrough */
+  .phase { display: grid; grid-template-columns: 150px 1fr; gap: 22px; padding: 22px 0; border-bottom: 1px solid var(--border); }
+  .phase:last-child { border-bottom: none; }
+  .phase .pid { font-family: var(--mono); font-size: 13px; color: var(--violet); font-weight: 700; padding-top: 2px; }
+  .phase .pid .who { display: block; color: var(--text-faint); font-weight: 400; font-size: 11px; margin-top: 4px; }
+  .phase h4 { font-size: 17.5px; }
+  .phase p { font-size: 15px; color: var(--text-dim); margin-top: 5px; }
+  .phase p b { color: var(--text); }
+  .phase .callout { display: block; margin: 12px 0 0; }
+
+  /* terminal block */
+  .term {
+    background: #0c0f16; border: 1px solid var(--border-bright); border-radius: 10px;
+    font-family: var(--mono); font-size: 13px; line-height: 1.75; padding: 18px 22px;
+    overflow-x: auto; margin: 16px 0; color: var(--text-dim);
+  }
+  .term .g { color: var(--green); } .term .r { color: var(--red); }
+  .term .c { color: var(--text-faint); } .term .w { color: var(--text); }
+  .term .v { color: var(--violet); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14.5px; }
+  th { font-family: var(--mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-faint); text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border-bright); }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: top; color: var(--text-dim); }
+  td b { color: var(--text); }
+  tr:last-child td { border-bottom: none; }
+
+  /* memory tiers */
+  .tiers { display: grid; grid-template-columns: 1fr 56px 1fr; gap: 0; align-items: stretch; margin: 22px 0; }
+  .tierbox { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px 22px; }
+  .tierbox h4 { font-family: var(--mono); font-size: 13.5px; }
+  .tierbox .sub { font-family: var(--mono); font-size: 11px; color: var(--text-faint); margin-bottom: 10px; }
+  .tierbox ul { list-style: none; font-size: 13.5px; color: var(--text-dim); }
+  .tierbox li { padding: 4px 0; border-bottom: 1px dashed var(--border); } .tierbox li:last-child { border: none; }
+  .tierbox li b { color: var(--text); }
+  .tierarrow { display: flex; align-items: center; justify-content: center; font-family: var(--mono); color: var(--text-faint); font-size: 18px; }
+
+  .incident {
+    background: linear-gradient(160deg, rgba(248,113,113,.06), var(--panel) 45%);
+    border: 1px solid rgba(248,113,113,.35); border-radius: 12px; padding: 28px 30px; margin: 30px 0;
+  }
+  .incident .tag { font-family: var(--mono); font-size: 11.5px; letter-spacing: 2px; color: var(--red); font-weight: 700; }
+  .incident h3 { margin: 8px 0 14px; }
+  .incident p { color: var(--text-dim); font-size: 15.5px; margin-bottom: 12px; max-width: 920px; }
+  .incident p b { color: var(--text); }
+  .timeline { margin: 18px 0; }
+  .tl { display: grid; grid-template-columns: 130px 1fr; gap: 16px; padding: 9px 0; border-bottom: 1px dashed var(--border); font-size: 14.5px; }
+  .tl:last-child { border: none; }
+  .tl .date { font-family: var(--mono); font-size: 12.5px; color: var(--red); font-weight: 700; padding-top: 2px; }
+  .tl .what { color: var(--text-dim); } .tl .what b { color: var(--text); }
+
+  /* autonomy */
+  .tiercols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin: 22px 0; }
+  .tcol { background: var(--panel); border: 1px solid var(--border); border-top: 3px solid; border-radius: 10px; padding: 20px 22px; }
+  .tcol.t1 { border-top-color: var(--green); } .tcol.t2 { border-top-color: var(--amber); } .tcol.t3 { border-top-color: var(--red); }
+  .tcol h4 { font-family: var(--mono); font-size: 13px; letter-spacing: 1.5px; }
+  .tcol.t1 h4 { color: var(--green); } .tcol.t2 h4 { color: var(--amber); } .tcol.t3 h4 { color: var(--red); }
+  .tcol .def { font-size: 13px; color: var(--text-faint); margin-bottom: 12px; }
+  .tcol ul { list-style: none; }
+  .tcol li { font-size: 13.5px; color: var(--text-dim); padding: 6px 0; border-bottom: 1px dashed var(--border); line-height: 1.5; }
+  .tcol li:last-child { border: none; }
+  .tcol li b { color: var(--text); }
+
+  blockquote.proof {
+    background: var(--panel); border: 1px solid var(--border-bright); border-radius: 12px;
+    padding: 30px 34px; font-size: 18.5px; line-height: 1.75; color: var(--text); max-width: 980px;
+  }
+  blockquote.proof em { color: var(--teal); font-style: normal; font-weight: 600; }
+
+  .note {
+    border: 1px solid var(--border); border-radius: 12px; background: var(--panel);
+    padding: 26px 30px; margin: 26px 0 60px; max-width: 980px;
+  }
+  .note .who { font-family: var(--mono); font-size: 12px; color: var(--violet); letter-spacing: 2px; margin-bottom: 12px; }
+  .note p { color: var(--text-dim); font-size: 15.5px; margin-bottom: 10px; }
+  .note p b { color: var(--text); }
+
+  footer { border-top: 1px solid var(--border); padding: 26px 0 50px; font-family: var(--mono); font-size: 12px; color: var(--text-faint); line-height: 2; }
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity .5s ease, transform .5s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+
+  @media (max-width: 900px) {
+    .statgrid, .pipegrid, .agentgrid, .tiercols { grid-template-columns: 1fr; }
+    .tiers { grid-template-columns: 1fr; } .tierarrow { transform: rotate(90deg); padding: 10px 0; }
+    .phase { grid-template-columns: 1fr; gap: 6px; }
+    h1 { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">health-agent-ecosystem</span>
+  <a href="#live">live state</a>
+  <a href="#agents">agents</a>
+  <a href="#walkthrough">/optimize-week</a>
+  <a href="#memory">memory</a>
+  <a href="#autonomy">autonomy</a>
+  <a href="#models">model tiering</a>
+  <a href="#proof">what this proves</a>
+</nav>
+
+<!-- ============================ HERO ============================ -->
+<header class="hero wrap">
+  <div class="sub">PRODUCTION SYSTEM · OPERATED SINCE MARCH 2026 · LAST PIPELINE RUN <b>2026-06-09</b> (TODAY)</div>
+  <h1>A self-calibrating multi-agent system that plans my training, meals, and <span class="accent">seizure-risk forecast</span> every week.</h1>
+  <p class="lede" style="margin-top:18px;">
+    Nine Claude Code agents coordinated through shared state, a two-tier memory architecture, and a
+    three-tier autonomy framework. Built around a real constraint: I had brain surgery two years ago,
+    and the variables that drive my seizure risk — sleep, strain, alcohol, travel, stress — are exactly
+    the variables a closed-loop agent system can forecast and plan around.
+  </p>
+  <div class="statgrid">
+    <div class="stat"><div class="num">9</div><div class="label">agents — 1 master orchestrator + 8 pipeline &amp; governance skills</div></div>
+    <div class="stat"><div class="num">7</div><div class="label">parallel subagents dispatched by <span class="mono">whoop-report</span> alone (1 Haiku, 6 Sonnet)</div></div>
+    <div class="stat"><div class="num">2</div><div class="label">memory tiers — Anthropic managed memory store + local JSON fallback</div></div>
+    <div class="stat"><div class="num">3</div><div class="label">autonomy tiers governing every action: Autonomous / Surface / Halt</div></div>
+    <div class="stat"><div class="num">167</div><div class="label">days of Whoop biometrics in the current analysis window (Dec 25 → Jun 9)</div></div>
+    <div class="stat"><div class="num">79</div><div class="label">days of 12-signal journal data in <span class="mono">neurologist-signals.json</span></div></div>
+    <div class="stat"><div class="num">5</div><div class="label">pipelines writing to shared state: optimize_week, gordon_ramsay, neurologist_agent, whoop_report, calendar</div></div>
+    <div class="stat"><div class="num">2</div><div class="label">frozen baseline snapshots in the managed store (May 24, Jun 9) for month-over-month diffing</div></div>
+  </div>
+</header>
+
+<!-- ============================ LIVE STATE ============================ -->
+<section id="live" class="wrap reveal">
+  <h2>live system state</h2>
+  <h3>What <code class="path">pipeline-state.json</code> says right now — verbatim</h3>
+  <div class="livebar"><span class="dot"></span> last_updated: <b style="color:var(--text)">2026-06-09T14:22:52Z</b> &nbsp;·&nbsp; source: <code class="path">Personal/Health/pipeline-state.json</code> — open it and it will match this page</div>
+
+  <div class="pipegrid">
+    <div class="pipecard">
+      <div class="pname" style="color:var(--violet)">optimize_week <span class="badge red">RISK: RED</span></div>
+      <div class="pmeta">run_date <b>2026-06-09</b> · week_of <b>2026-06-09</b><br>
+      training_sessions <b>0</b> · meal_plan_path <b>null</b><br>
+      all_blocks_synced_to_managed_memory <b style="color:var(--green)">true</b><br>
+      <span style="color:var(--text-faint)">"Travel week Jun 12–17. Meal plan skipped. RED Thursday (compounding: travel+alcohol+stress streak). GCal alerts placed Thu+Fri."</span></div>
+    </div>
+    <div class="pipecard">
+      <div class="pname" style="color:var(--red)">neurologist_agent <span class="badge red">RED</span></div>
+      <div class="pmeta">run_date <b>2026-06-09</b> · top_factor <b>travel_compounding</b><br>
+      avg_recovery <b>54.4%</b> · avg_hrv <b>157.0 ms</b> · avg_rhr <b>49.7</b><br>
+      stress_streak_days <b>5</b> · alcohol_days_recent <b>2</b><br>
+      gcal_alerts_placed: <b>Jun 12, Jun 13</b></div>
+    </div>
+    <div class="pipecard">
+      <div class="pname" style="color:var(--teal)">whoop_report <span class="badge green">COMPLETE</span></div>
+      <div class="pmeta">run_date <b>2026-06-09</b> · month <b>June 26</b><br>
+      window <b>2025-12-25 → 2026-06-09</b> · n_days <b>167</b> · anomalies <b>2</b><br>
+      HRV↔recovery r <b>0.819</b> · partial r <b>0.824</b><br>
+      OLS R² <b>0.221</b> (n=166) — sleep duration + prior-day strain only</div>
+    </div>
+    <div class="pipecard">
+      <div class="pname" style="color:var(--green)">gordon_ramsay <span class="badge amber">STALE — by design</span></div>
+      <div class="pmeta">run_date <b>2026-04-26</b> · week_of <b>2026-04-28</b><br>
+      avg_protein <b>155 g</b> · avg_cals <b>3,200</b> (marathon taper + carb load)<br>
+      <span style="color:var(--text-faint)">Last full plan was race week. Today's run skipped meals deliberately (travel) — and this stale block is precisely what Alfred's &gt;14-day drift flag exists to catch.</span></div>
+    </div>
+    <div class="pipecard">
+      <div class="pname" style="color:var(--amber)">calendar <span class="badge green">COMPLETE</span></div>
+      <div class="pmeta">run_date <b>2026-05-24</b> · block <b>Golf-block summer 2026</b><br>
+      7 sessions · weekly_strain_estimate <b>92</b> · long_run_day <b>"none"</b><br>
+      9 GCal event IDs stored · constraints: no heavy OHP, no floor deadlifts, RPE 8 ceiling</div>
+    </div>
+    <div class="pipecard">
+      <div class="pname" style="color:var(--text-faint)">morning_digest <span class="badge dim">TOMBSTONE</span></div>
+      <div class="pmeta">status <b>disabled</b> (2026-04-01)<br>
+      <span style="color:var(--text-faint)">"Do not read this block as a data source." — a dead pipeline is documented in state rather than silently deleted, so no agent ever resurrects it by accident.</span></div>
+    </div>
+  </div>
+
+  <h4 style="margin-top:30px;">This week's live forecast — written by the neurologist agent this morning</h4>
+  <div class="forecast">
+    <div class="fday yellow"><div class="d">MON 06-09</div><div class="lvl">YELLOW</div></div>
+    <div class="fday yellow"><div class="d">TUE 06-10</div><div class="lvl">YELLOW</div></div>
+    <div class="fday yellow"><div class="d">WED 06-11</div><div class="lvl">YELLOW</div></div>
+    <div class="fday redday"><div class="d">THU 06-12</div><div class="lvl">RED</div></div>
+    <div class="fday yellow"><div class="d">FRI 06-13</div><div class="lvl">YELLOW</div></div>
+    <div class="fday yellow"><div class="d">SAT 06-14</div><div class="lvl">YELLOW</div></div>
+    <div class="fday yellow"><div class="d">SUN 06-15</div><div class="lvl">YELLOW</div></div>
+  </div>
+  <p style="font-size:14px; color:var(--text-dim); max-width:880px;">Thursday goes RED because the compounding rule fired: travel departure + alcohol within the recency window + a 5-day stress streak. Two yellows normally compound to yellow — but when one factor is alcohol, dizziness, or high-tier travel, the week escalates to red. The agent placed ⚠️ alert events on my Google Calendar for Jun 12–13.</p>
+
+  <div class="callout"><b class="tag">Why verbatim state matters</b>
+  Nothing on this page is staged. The RED forecast, the null meal plan, the stale April meal block — that's the actual system state today. A dashboard that only ever shows green is a demo; a system that records "meal plan skipped, travel week" is operations.</div>
+</section>
+
+<!-- ============================ AGENTS ============================ -->
+<section id="agents" class="wrap reveal">
+  <h2>system architecture</h2>
+  <h3>The nine agents</h3>
+  <p class="section-intro">Eight live in the project at <code class="path">Personal/Health/.claude/skills/</code>; the orchestrator lives globally at <code class="path">~/.claude/skills/optimize-week/</code>. Each is a SKILL.md — versioned instructions, guardrails, and a documented <em>Gotchas</em> section of real production failures.</p>
+
+  <div class="agentgrid">
+    <div class="agent">
+      <div class="aname" style="color:var(--violet)">optimize-week</div>
+      <div class="arole">master orchestrator · closed-loop weekly planner</div>
+      <p>One command plans the entire week. Runs <b>Week Brief → Pre-flight → Phases 0, 0.5, 1, 2, 2.5, 3, 4, 5, 5.5</b> — training, risk forecast, meals, groceries, state write, governance check. The only skill permitted multi-level spawn chains (max depth 3, enforced by spawning-rules.md).</p>
+      <div class="files">writes: <code class="path">pipeline-state.json</code> via <code>write_all_pipelines()</code> · <code class="path">pipeline-history.json</code> (append-only)</div>
+    </div>
+    <div class="agent">
+      <div class="aname" style="color:var(--green)">gordon-ramsay</div>
+      <div class="arole">autonomous meal planner · Phases 0–3, Outputs A–I</div>
+      <p>Strain-aware meal placement: pre-PEAK dinner carb-loads, PEAK-day dinner gets the highest protein tier, rest days eat leftovers. Nine outputs per run — plan table, grocery list, macro snapshot, Apple Notes, Reminders, <code>meal-log.md</code>, <code>meal-annotations.json</code>, a 3-tab PWA, GCal cook nights, state write. <b>style_lock: brand</b> — design agents may polish but never replace its palette.</p>
+      <div class="files">reads: <code class="path">Meals/pantry/food-pantry.md</code> · <code class="path">Meals/meal-annotations.json</code> · <code class="path">Meals/agent-weights.json</code></div>
+    </div>
+    <div class="agent">
+      <div class="aname" style="color:var(--teal)">whoop-report</div>
+      <div class="arole">monthly biometric analysis · orchestrator of 7 subagents</div>
+      <p>Explicitly an orchestrator: <b>"you do NOT do the analysis yourself."</b> Dispatches a Haiku data cleaner, then four Sonnet analysts in parallel (descriptive stats, OLS regression + HRV mediator, dose-response, behavioral interventions), merges their JSON, then two Sonnet renderers in parallel (interactive HTML report + scorecard). Also freezes a monthly <code>baseline_snapshot</code> into the managed memory store.</p>
+      <div class="files">in: <code class="path">Whoop Performance/[Month]/raw/*.csv</code> → out: <code class="path">cleaned/analysis-results.json</code> · report HTML · scorecard</div>
+    </div>
+    <div class="agent">
+      <div class="aname" style="color:var(--red)">neurologist-agent</div>
+      <div class="arole">self-calibrating seizure-risk forecaster · Phase 2.5 of optimize-week</div>
+      <p>Scores <b>7 risk factors</b> against a <b>30-day baseline</b> from 79 days of journal signals, applies protective credits (3+ day meditation/outdoors streaks) and a compounding rule, and outputs a GREEN/YELLOW/RED forecast per day plus overrides for the other agents. <b>Always surfaces overrides and waits</b> — it never silently modifies the training or meal plan.</p>
+      <div class="files">reads: <code class="path">Meals/neurologist-signals.json</code> · <code class="path">Meals/seizure-risk.json</code> · <code class="path">Meals/agent-weights.json</code> (consumer only — never writes it)</div>
+    </div>
+    <div class="agent">
+      <div class="aname" style="color:var(--amber)">calendar</div>
+      <div class="arole">training scheduler · PPL cycle + long-run anchoring</div>
+      <p>Reads existing GCal events first — if the week is already built, it uses that as the strain map instead of regenerating (source-of-truth check). Places sessions around hard anchors: never lift on long-run day, never legs the day before. Writes a schema-locked state block where <code>session_map</code> keys must be ISO dates — day names break the validator.</p>
+      <div class="files">reads: <code class="path">Training/ATHLETE.md</code> · <code class="path">Training/workout-plan.md</code> · GCal MCP &nbsp;|&nbsp; writes: GCal events + state block</div>
+    </div>
+    <div class="agent">
+      <div class="aname" style="color:var(--blue)">alfred</div>
+      <div class="arole">governance agent · drift detection, memory integrity, config backup</div>
+      <p>The watchdog. Flags pipelines stale &gt;14 days, validates state blocks against required-field schemas, cross-references that gordon_ramsay and optimize_week agree on the same week, and runs the <b>silent-fallback detector</b> — comparing the managed store's <code>updated_at</code> against local <code>snapshot_date</code>. Hard rules: never writes pipeline-state.json, never modifies a SKILL.md, never deletes, never spawns. A watchdog, not a gate — if Alfred itself errors, the pipeline completes anyway.</p>
+      <div class="files">reads: <code class="path">pipeline-history.json</code> · executes: <code class="path">pipeline_memory.py status</code></div>
+    </div>
+    <div class="agent">
+      <div class="aname" style="color:var(--cyan)">managed-memory-agent</div>
+      <div class="arole">safety &amp; rollback for the memory migration</div>
+      <p>Owns STATUS / UPDATE / INSPECT / ROLLBACK / SNAPSHOT against the live store. Rollback is fully reversible by design: the pre-migration text of every modified SKILL.md is preserved in <code>skill_originals{}</code> in the registry, and remote deletion must return 200 <b>before</b> any local file is touched. Baseline snapshots are never deleted — even by rollback.</p>
+      <div class="files">owns: <code class="path">memory-store-config.json</code> · <code class="path">pipeline_memory.py</code> · store <code>memstore_013zYKKw8W2f5AV4G5V71Djj</code></div>
+    </div>
+    <div class="agent">
+      <div class="aname" style="color:var(--pink)">meal-log-update</div>
+      <div class="arole">mid-week actuals corrector · 8 phases</div>
+      <p>Reconciles plan vs. reality: validates last week's carry-in against <code>meal-annotations.json</code> (Phase 1.5), interviews me on deviations, rebuilds the actuals table under batch-carry rules, replans forward, flags grocery gaps (Phase 4.5) and sub-150g protein days (Phase 8). Sets <code>actuals_updated: true</code> in state so downstream validators know this week reflects what was actually eaten.</p>
+      <div class="files">writes: <code class="path">Meals/meal-log.md</code> (current week only) · <code class="path">Meals/meal-annotations.json</code> · gordon_ramsay state block</div>
+    </div>
+    <div class="agent" style="grid-column: 1 / -1;">
+      <div class="aname" style="color:var(--sand)">fridge-raid</div>
+      <div class="arole">guided pantry editor · the human-input gate</div>
+      <p>The smallest agent, deliberately: a confirm-at-every-step editor for <code class="path">Meals/pantry/food-pantry.md</code> — the single source of truth every meal decision flows from. Gordon Ramsay is forbidden from inventing meals ("pull entrees ONLY from food-pantry.md"), so the pantry file is the one place where human curation enters the system, and it gets its own guarded skill rather than ad-hoc edits.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ WALKTHROUGH ============================ -->
+<section id="walkthrough" class="wrap reveal">
+  <h2>pipeline walkthrough</h2>
+  <h3>What happens when <code>/optimize-week</code> fires</h3>
+  <p class="section-intro">One command, zero manual handoffs. Each phase names the files it reads and writes — this is the order of operations from the SKILL.md, not a simplification.</p>
+
+  <div class="phase">
+    <div class="pid">WEEK BRIEF<span class="who">orchestrator</span></div>
+    <div><h4>Nine questions, one message — then no more questions</h4>
+    <p>Carry-ins, special meals, run schedule, egg-bake cycle, travel, workout changes, pantry additions, anything else, protected time. Answers become a <b>locked CONSTRAINTS block</b> that every later rebuild must re-read — a session guardrail added 2026-04-26 after a live run silently dropped a constraint mid-rebuild.</p></div>
+  </div>
+  <div class="phase">
+    <div class="pid">PRE-FLIGHT<span class="who">orchestrator</span></div>
+    <div><h4>File checks + two independent auth systems</h4>
+    <p>Halts if <code class="path">food-pantry.md</code> or <code class="path">ATHLETE.md</code> is missing. Tests <b>GCal MCP</b> (training events, cook nights) and <b>GWS CLI</b> (grocery email) separately — they're different OAuth systems and fixing one does not fix the other. Each failure has a pre-declared fallback, decided now, not discovered mid-pipeline.</p></div>
+  </div>
+  <div class="phase">
+    <div class="pid">PHASE 0<span class="who">validator script</span></div>
+    <div><h4>State integrity gate</h4>
+    <p>Runs <code class="path">pipeline-state-validator.py</code> against <code class="path">pipeline-state.json</code>. Errors halt the run; warnings print one line and continue.</p>
+    <div class="callout"><b class="tag">Why this matters</b>Corrupt shared state poisons every downstream agent. Validating before planning means a bad write from last week can't silently become this week's wrong meal plan.</div></div>
+  </div>
+  <div class="phase">
+    <div class="pid">PHASE 0.5<span class="who">whoop-report<br>+ 7 subagents</span></div>
+    <div><h4>Monthly Brain Check — auto-detected, not scheduled</h4>
+    <p>If a new <code class="path">Whoop Performance/[Month]/raw/</code> CSV export exists without an <code>output/</code> folder, the full whoop-report pipeline runs first: Haiku cleaner → 4 parallel Sonnet analysts → merge → 2 parallel Sonnet renderers. Then the <b>Retrospective Validator</b> grades last month's risk forecasts against actual biometrics and recalibrates <code class="path">Meals/agent-weights.json</code> — shifts capped at <b>±15% per monthly cycle</b>, hard bounds <b>[0.5, 2.0]</b>.</p>
+    <div class="callout"><b class="tag">Why this matters</b>The forecaster never grades its own homework. Generation (neurologist) and evaluation (validator) are separate agents with a one-way write boundary: only the validator may touch agent-weights.json. That's the difference between a system that self-calibrates and one that self-reinforces.</div></div>
+  </div>
+  <div class="phase">
+    <div class="pid">PHASE 1<span class="who">orchestrator</span></div>
+    <div><h4>Read all context once, in parallel</h4>
+    <p><code class="path">food-pantry.md</code>, <code class="path">meal-log.md</code>, <code class="path">meal-annotations.json</code>, <code class="path">ATHLETE.md</code>, <code class="path">workout-plan.md</code>, the <code class="path">Training/Running/</code> folder, and next week's GCal. A standing guardrail — <b>"Reuse Phase 1 reads"</b> — forbids later phases from re-reading these files. Read once, use everywhere.</p></div>
+  </div>
+  <div class="phase">
+    <div class="pid">PHASE 2<span class="who">calendar logic</span></div>
+    <div><h4>Training placement → the strain map</h4>
+    <p>Checks GCal first: if I pre-built the week, those events <b>are</b> the strain map — no regeneration. Otherwise places the 3-on-1-off cycle around hard anchors (long run wherever Runna put it; no legs the day before). Output is the strain map — <code>{day → type, tier, time}</code> — the data structure every downstream phase consumes.</p></div>
+  </div>
+  <div class="phase">
+    <div class="pid">PHASE 2.5<span class="who">neurologist-agent</span></div>
+    <div><h4>Risk forecast — the human gate in the middle of the pipeline</h4>
+    <p>Scores 7 factors against the 30-day signal baseline, applies the compounding rule, and prints the week's GREEN/YELLOW/RED forecast plus proposed overrides (deload Tuesday, lighten Wednesday meals, GCal alerts). <b>The pipeline stops here until I confirm.</b> It also prints the last 7 days of raw signals for me to read myself — the SKILL.md's words: <em>"Outsource the scoring, keep the sensing."</em></p>
+    <div class="callout danger"><b class="tag">Why this matters</b>This is Tier 2 enforcement in code, not policy: the highest-stakes output in the system (a health intervention) is structurally incapable of applying itself. Today's run is proof — Thursday went RED and the alerts only landed on my calendar after I confirmed.</div></div>
+  </div>
+  <div class="phase">
+    <div class="pid">PHASE 3<span class="who">gordon-ramsay logic</span></div>
+    <div><h4>Meals placed against the strain map — nine outputs, none skippable</h4>
+    <p>Carb-load lands the night before PEAK; the PEAK-day dinner gets the highest protein tier; rest days eat leftovers. Then Outputs A–I run in order, ending with Output I: the state write. A guardrail exists because of a real miss — Output H (cook nights → GCal) was skipped on 2026-03-26 when the checklist only said "A–G."</p></div>
+  </div>
+  <div class="phase">
+    <div class="pid">PHASE 4–5<span class="who">orchestrator</span></div>
+    <div><h4>Grocery email, then the atomic state write</h4>
+    <p>Phase 5 calls <code>write_all_pipelines(pipelines_dict)</code> — never individual writes — because Phase 5 is exactly where a partial failure (gordon_ramsay lands, neurologist_agent silently doesn't) would make next week's run read stale risk data. Any non-null alert blocks the history write until resolved. Then the run is appended to <code class="path">pipeline-history.json</code> with computed <code>drift_flags</code> (HRV ±10ms, recovery ±5%, protein ±20g vs. the prior run).</p></div>
+  </div>
+  <div class="phase">
+    <div class="pid">PHASE 5.5<span class="who">alfred</span></div>
+    <div><h4>Governance check before the run may declare itself complete</h4>
+    <p>Alfred verifies every block written locally is reachable in managed memory and runs drift detection. Non-empty <code>actions_needed</code> surfaces to me before completion. If Alfred itself fails, the pipeline still completes — <b>"Alfred is a watchdog, not a gate."</b></p>
+    <div class="callout warn"><b class="tag">Why GCal writes are sequential</b>A standing guardrail across all agents: the Google Calendar MCP intermittently returns 500s on concurrent <code>create_event</code> calls. Every event is created one at a time, with one retry, then plaintext fallback. Learned in production, encoded as a rule.</div></div>
+  </div>
+</section>
+
+<!-- ============================ MEMORY ============================ -->
+<section id="memory" class="wrap reveal">
+  <h2>memory architecture</h2>
+  <h3>Two tiers, one interface, one hard-earned lesson</h3>
+  <p class="section-intro">Every pipeline writes through one module — <code class="path">Personal/Health/pipeline_memory.py</code> — which writes the Anthropic managed memory store first and <em>always</em> writes the local JSON regardless. The registry mapping pipelines to memory records lives in <code class="path">memory-store-config.json</code>.</p>
+
+  <div class="tiers">
+    <div class="tierbox">
+      <h4 style="color:var(--cyan)">TIER 1 — Managed Memory Store</h4>
+      <div class="sub">memstore_013zYKKw8W2f5AV4G5V71Djj · header: anthropic-beta: managed-agents-2026-04-01</div>
+      <ul>
+        <li>6 memory records — one per pipeline block (incl. the morning_digest tombstone)</li>
+        <li>2 frozen <b>baseline_snapshots</b> (2026-05-24, 2026-06-09) — monthly biometric checkpoints for diffing</li>
+        <li>Writes use a <b>SHA-256 content precondition</b> (optimistic concurrency); on 409, retry without precondition — safe, single-owner store</li>
+        <li>Survives machine loss; readable by any future agent session</li>
+      </ul>
+    </div>
+    <div class="tierarrow">⇄</div>
+    <div class="tierbox">
+      <h4 style="color:var(--green)">TIER 2 — Local Fallback</h4>
+      <div class="sub">Personal/Health/pipeline-state.json · always written</div>
+      <ul>
+        <li>The original source of truth — migration never touched it, so rollback is always possible</li>
+        <li><code>write_pipeline()</code> returns <b>True</b> only if the managed write succeeded; <b>False</b> = local-only fallback</li>
+        <li><code>write_all_pipelines()</code> adds partial-write detection: a named alert listing exactly which blocks failed</li>
+        <li>Companion: <code class="path">pipeline-history.json</code>, append-only run log with drift thresholds + schemas</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="incident">
+    <span class="tag">INCIDENT REPORT · LOGGED IN managed-memory-agent/SKILL.md</span>
+    <h3>The silent fallback: 3 weeks of writes that lied by omission</h3>
+    <p><b>Symptom.</b> From 2026-05-04 to 2026-05-24, every <code>write_pipeline()</code> call returned <code class="red">False</code>. Local state kept updating perfectly — pipelines ran, plans shipped, nothing looked wrong. The managed store sat frozen at its creation date for 20 days.</p>
+    <p><b>Root cause.</b> Claude Code launched from VSCode doesn't inherit the terminal shell environment. <code>ANTHROPIC_API_KEY</code> lived in <code class="path">~/.zshrc</code> — which only interactive shells read — so it never reached the Claude Code process or any Python subprocess it spawned. <code>_headers()</code> returned None, and the module did exactly what it was designed to do: fell back gracefully, silently.</p>
+    <p><b>The real bug wasn't the env var. It was that the fallback worked too well.</b> Graceful degradation without observability isn't resilience — it's silent data corruption with good manners.</p>
+    <div class="timeline">
+      <div class="tl"><div class="date">2026-05-04</div><div class="what">Migration ships in a live practice session. Store created, 6 blocks seeded, all green.</div></div>
+      <div class="tl"><div class="date">05-04 → 05-24</div><div class="what">Every pipeline run silently falls back to local-only. No error, no warning — the return value existed but no skill was required to check it.</div></div>
+      <div class="tl"><div class="date">2026-05-24</div><div class="what">Caught during a manual STATUS check: remote <code>updated_at</code> = creation date on every block.</div></div>
+      <div class="tl"><div class="date">2026-05-24</div><div class="what"><b>Four-layer fix, same day:</b> ① key moved to <code class="path">~/.zshenv</code> (read by all zsh invocations, including GUI launches) ② <code>_get_api_key()</code> added to pipeline_memory.py — env first, then parse ~/.zshenv directly, bulletproof regardless of launch path ③ all 5 pipeline SKILL.mds now <b>mandate</b> capturing the return value and surfacing False ④ Alfred gained a silent-fallback detector: managed <code>updated_at</code> &gt;24h older than local <code>snapshot_date</code> = Tier 2 surface.</div></div>
+    </div>
+    <p style="margin-bottom:0;"><b>Design takeaway:</b> the same failure now has four independent chances to be caught — at the environment, in the library, in every calling agent, and by the post-run watchdog. The incident is written into the SKILL.md itself, so every future agent that touches this module reads the failure mode before writing a line.</p>
+  </div>
+
+  <div class="term">
+<span class="c"># the contract every pipeline skill is bound to (verbatim pattern from the SKILL.mds)</span><br>
+<span class="v">from</span> pipeline_memory <span class="v">import</span> write_pipeline<br><br>
+ok = write_pipeline(<span class="g">"gordon_ramsay"</span>, data)<br>
+<span class="v">if not</span> ok:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="w">print</span>(<span class="r">"⚠️ MANAGED MEMORY WRITE FAILED — block written local-only. Run /managed-memory-agent STATUS to diagnose."</span>)<br><br>
+<span class="c"># "A False return without surfacing is what caused the 2026-05-04 → 2026-05-24 silent drift. Do not skip this check."</span>
+  </div>
+</section>
+
+<!-- ============================ AUTONOMY ============================ -->
+<section id="autonomy" class="wrap reveal">
+  <h2>governance</h2>
+  <h3>The three-tier autonomy framework</h3>
+  <p class="section-intro">Every action any agent takes is classified before it runs — defined in <code class="path">~/.claude/rules/autonomy-boundaries.md</code> and enforced inside each SKILL.md. The examples below are pulled from the actual skill files, not the policy doc.</p>
+
+  <div class="tiercols">
+    <div class="tcol t1">
+      <h4>TIER 1 — AUTONOMOUS</h4>
+      <div class="def">Reversible, low blast radius, inside the agent's job description. Runs without asking.</div>
+      <ul>
+        <li><b>neurologist-agent</b> computes the 7-factor risk forecast and writes <code>seizure-risk.json</code></li>
+        <li><b>gordon-ramsay</b> generates the meal-plan PWA and appends to <code>meal-log.md</code></li>
+        <li><b>whoop-report</b> dispatches its 7 subagents and writes analysis JSON</li>
+        <li>Any agent writing <b>its own</b> pipeline-state block via <code>write_pipeline()</code></li>
+      </ul>
+    </div>
+    <div class="tcol t2">
+      <h4>TIER 2 — SURFACE FIRST</h4>
+      <div class="def">Outward-facing or hard to reverse. Show the action, wait for explicit "go."</div>
+      <ul>
+        <li><b>Every GCal write</b> — training events, cook nights, risk alerts (sequential, one at a time)</li>
+        <li><b>Neurologist overrides</b> — Phase 2.5 halts the whole pipeline until I confirm or reject</li>
+        <li><b>Whoop report → public GitHub repo</b> — raw biometrics; requires a literal "yes" to the printed warning, never auto-fires</li>
+        <li><b>agent-weights.json changes beyond ±25%</b> of current values</li>
+        <li><b>All Alfred remediation</b> — Tier 2 by default until individually promoted</li>
+      </ul>
+    </div>
+    <div class="tcol t3">
+      <h4>TIER 3 — HALT</h4>
+      <div class="def">Stop fully, report, never continue on partial data.</div>
+      <ul>
+        <li><b>API key unresolvable</b> from env AND ~/.zshenv — Alfred halts with the fix recipe</li>
+        <li><b>Managed memory store unreachable</b> for any block</li>
+        <li><b>Corrupt pipeline-state.json</b> — Phase 0 validator errors stop the run before planning</li>
+        <li><b>optimize-week pre-flight</b>: missing <code>food-pantry.md</code> or <code>ATHLETE.md</code> = print path, stop</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout"><b class="tag">Rules the calibration loop cannot override</b>
+  Self-tuning has clinical guardrails baked in: alcohol is never downgraded by protective credits <em>even if its learned weight drops below 1.0</em>, and dizziness on Sunday forces a yellow week baseline that no multiplier can cancel. The system is allowed to learn how sensitive to be — it is not allowed to learn its way out of a safety rule.</div>
+
+  <div class="callout"><b class="tag">Subagents inherit, never expand</b>
+  A subagent's autonomy ceiling is its parent's. A newly created agent runs Tier-2-everything until specific actions are individually promoted. No agent earns trust by default — including the governance agent itself: the open question "should Alfred ever auto-remediate?" is documented in its SKILL.md with the answer <em>"Default: No."</em></div>
+</section>
+
+<!-- ============================ MODELS ============================ -->
+<section id="models" class="wrap reveal">
+  <h2>cost engineering</h2>
+  <h3>Model tiering — documented in the SKILL.md, not folklore</h3>
+  <p class="section-intro">From the Model Assignments table in <code class="path">whoop-report/SKILL.md</code>, plus the standing rules in <code class="path">~/.claude/rules/spawning-rules.md</code>.</p>
+
+  <table>
+    <tr><th>Subagent</th><th>Function</th><th>Model</th></tr>
+    <tr><td><b>SA1</b> — Data Cleaner</td><td>CSV parsing, normalization, anomaly flagging — no reasoning required</td><td><code>claude-haiku-4-5</code></td></tr>
+    <tr><td><b>SA2</b> — Descriptive Stats</td><td>Means/SDs, weekly averages, period deltas</td><td><code>claude-sonnet-4-6</code></td></tr>
+    <tr><td><b>SA3</b> — Regression + HRV Mediator</td><td>OLS model, partial correlations</td><td><code>claude-sonnet-4-6</code></td></tr>
+    <tr><td><b>SA4</b> — Dose-Response + Modality</td><td>Quadratic strain→recovery fit, Cohen's d between training types</td><td><code>claude-sonnet-4-6</code></td></tr>
+    <tr><td><b>SA5</b> — Interventions + Correlations</td><td>Behavioral effects (≥30 yes-days AND ≥30 no-days required — small-n effect sizes are bias, not signal)</td><td><code>claude-sonnet-4-6</code></td></tr>
+    <tr><td><b>SA6</b> — Report Generator</td><td>Token-fills the HTML report template, bakes data inline</td><td><code>claude-sonnet-4-6</code></td></tr>
+    <tr><td><b>SA7</b> — Scorecard Builder</td><td>Updates the scorecard DATA object, computes month-over-month trends</td><td><code>claude-sonnet-4-6</code></td></tr>
+  </table>
+
+  <div class="callout"><b class="tag">Why Opus is banned here</b>
+  Verbatim rationale from the skill: <em>"Opus is not used — this pipeline runs ~87K tokens and Opus would 3–4x cost with no quality benefit."</em> The spawning rules make it a hard rule for both big pipelines, with one exception that cuts the other way: <em>any subagent writing to pipeline-state.json is Sonnet minimum — Haiku truncation is a known corruption vector.</em> Cheapest model that's correct, never cheaper.</div>
+
+  <div class="callout"><b class="tag">Why optimize-week inlines instead of spawning</b>
+  The orchestrator runs calendar, neurologist, and gordon-ramsay <em>logic</em> in its own context ("do NOT invoke as a separate skill") but spawns whoop-report as a real subagent pipeline. The dividing line is token economics: the planning phases share Phase 1's file reads — spawning would force every input back through disk per spawning-rules Rule 3 — while the Whoop analysis is an ~87K-token job that would blow out the parent context. Spawn when isolation pays for itself; inline when shared context does.</div>
+</section>
+
+<!-- ============================ PROOF ============================ -->
+<section id="proof" class="wrap reveal">
+  <h2>summary</h2>
+  <h3>What this system proves</h3>
+  <blockquote class="proof">
+    "This system runs on <em>orchestration, not a bigger model</em> — nine agents with narrow jobs, coordinated through shared state and explicit handoffs, outperform any single prompt I could write.
+    Every piece of complexity is <em>cost-justified and documented</em>: Haiku cleans CSVs, Sonnet does the analysis, and Opus is banned from an 87K-token pipeline by a written rule, not a vibe.
+    And <em>governance is a design layer, not an afterthought</em> — every action is tiered Autonomous, Surface, or Halt before it runs; the forecaster can't grade its own homework; and when the memory layer failed silently for three weeks, the fix wasn't a patch, it was four independent layers of detection.
+    I operate this in production on my own seizure risk — which means I had to learn what production actually demands: observability, rollback paths, and the humility to assume the failure you can't see is the one happening right now."
+  </blockquote>
+
+  <div class="note">
+    <div class="who">ARCHITECT'S NOTE — CLAUDE FABLE 5, AFTER READING ALL NINE SKILL FILES AND THE LIVE DATA LAYER</div>
+    <p>The decision that most signals real engineering judgment isn't the orchestration — it's the <b>write boundary around <code>agent-weights.json</code></b>. The neurologist consumes the calibration weights but is forbidden from writing them; only the monthly Retrospective Validator may, with shifts capped at ±15% per cycle inside hard bounds [0.5, 2.0], and with clinical rules (alcohol, Sunday dizziness) that no learned weight can override. That's bounded self-modification with separated generation and evaluation — the pattern production ML teams reach for after their first feedback loop goes degenerate, implemented here before it did.</p>
+    <p>Second, the system is honest about its own immaturity: every entree-recovery correlation in the live weights file is still <b>0.0</b>, and the state block documents it — <em>"untrained… future snapshots should show these populate."</em> Most builders would hide an untrained feature; this one wrote a comparison anchor so the moment it starts learning is itself measurable. The silent-fallback incident completes the picture: the postmortem lives inside the SKILL.md where future agents must read it. Tutorials teach happy paths. Operators write incident reports into their tools.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    SOURCES READ FOR THIS PAGE — all under <span style="color:var(--cyan)">/Users/loganmatson/Desktop/AI Work/</span><br><br>
+    Personal/Health/.claude/skills/{gordon-ramsay, whoop-report, calendar, neurologist-agent, alfred, managed-memory-agent, meal-log-update, fridge-raid}/SKILL.md<br>
+    ~/.claude/skills/optimize-week/SKILL.md · ~/.claude/rules/{autonomy-boundaries, spawning-rules}.md<br>
+    Personal/Health/{pipeline-state.json, pipeline-history.json, pipeline_memory.py, memory-store-config.json, pipeline-state-validator.py}<br>
+    Personal/Health/Meals/{agent-weights.json, neurologist-signals.json (79 days), meal-annotations.json, seizure-risk.json}<br><br>
+    Generated 2026-06-09 · every number on this page traces to one of these files
+  </div>
+</footer>
+
+<script>
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); obs.unobserve(e.target); } });
+  }, { threshold: 0.06 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
