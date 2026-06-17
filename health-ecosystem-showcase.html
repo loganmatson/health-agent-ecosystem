@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex">
+<meta name="description" content="A self-calibrating multi-agent system that plans training, meals, and seizure-risk forecasts every week — nine Claude Code agents coordinated through shared state, two-tier memory, and a three-tier autonomy framework. Built by Logan Matson.">
+<meta property="og:title" content="Health Agent Ecosystem — Production Multi-Agent System">
+<meta property="og:description" content="Nine Claude Code agents, one weekly command, real health stakes. Every number on the page traces to a live file.">
+<meta property="og:type" content="website">
 <title>Health Agent Ecosystem — Production Multi-Agent System</title>
 <style>
   :root {
@@ -31,6 +34,14 @@
   html { scroll-behavior: smooth; scroll-padding-top: 70px; }
   body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16.5px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
   ::selection { background: rgba(0,245,196,.25); }
+
+  /* scroll progress bar */
+  #progress {
+    position: fixed; top: 0; left: 0; height: 2px; width: 0;
+    background: linear-gradient(90deg, var(--teal), var(--violet));
+    z-index: 200; box-shadow: 0 0 10px rgba(0,245,196,.6);
+    transition: width .08s linear;
+  }
 
   nav {
     position: fixed; top: 0; left: 0; right: 0; z-index: 100;
@@ -67,10 +78,22 @@
   .section-intro { color: var(--text-dim); max-width: 880px; margin-bottom: 30px; }
 
   /* hero */
-  .hero { padding: 130px 0 40px; }
+  .hero { padding: 130px 0 40px; position: relative; }
+  .hero::before {
+    content: ""; position: absolute; top: -60px; left: -10%; width: 70%; height: 460px;
+    background: radial-gradient(60% 60% at 30% 30%, rgba(0,245,196,.12), transparent 70%),
+                radial-gradient(50% 50% at 80% 40%, rgba(167,139,250,.10), transparent 70%);
+    filter: blur(8px); pointer-events: none; z-index: 0;
+    animation: heroGlow 9s ease-in-out infinite alternate;
+  }
+  .hero > * { position: relative; z-index: 1; }
+  @keyframes heroGlow { from { opacity: .65; transform: translateX(0); } to { opacity: 1; transform: translateX(26px); } }
   .hero .sub { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-bottom: 18px; }
   .hero .sub b { color: var(--amber); font-weight: 600; }
-  .hero h1 .accent { color: var(--teal); }
+  .hero h1 .accent {
+    background: linear-gradient(110deg, var(--teal) 10%, #7fffe0 45%, var(--violet) 95%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
   .statgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 38px; }
   .stat {
     background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
@@ -205,6 +228,21 @@
   .reveal { opacity: 0; transform: translateY(14px); transition: opacity .5s ease, transform .5s ease; }
   .reveal.in { opacity: 1; transform: none; }
 
+  /* micro-state: subtle hover lift on cards */
+  .stat, .pipecard, .agent, .tcol, .tierbox, .term {
+    transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+  }
+  .stat:hover, .pipecard:hover, .agent:hover, .tcol:hover, .tierbox:hover {
+    transform: translateY(-3px); border-color: var(--border-bright);
+    box-shadow: 0 8px 26px -12px rgba(0,0,0,.7);
+  }
+  nav a { transition: color .15s ease, background .15s ease; }
+  @media (prefers-reduced-motion: reduce) {
+    .hero::before { animation: none; }
+    .reveal { transition: none; opacity: 1; transform: none; }
+    .stat, .pipecard, .agent, .tcol, .tierbox { transition: none; }
+  }
+
   @media (max-width: 900px) {
     .statgrid, .pipegrid, .agentgrid, .tiercols { grid-template-columns: 1fr; }
     .tiers { grid-template-columns: 1fr; } .tierarrow { transform: rotate(90deg); padding: 10px 0; }
@@ -214,6 +252,8 @@
 </style>
 </head>
 <body>
+
+<div id="progress"></div>
 
 <nav>
   <span class="brand">health-agent-ecosystem</span>
@@ -587,7 +627,8 @@ ok = write_pipeline(<span class="g">"gordon_ramsay"</span>, data)<br>
     ~/.claude/skills/optimize-week/SKILL.md · ~/.claude/rules/{autonomy-boundaries, spawning-rules}.md<br>
     Personal/Health/{pipeline-state.json, pipeline-history.json, pipeline_memory.py, memory-store-config.json, pipeline-state-validator.py}<br>
     Personal/Health/Meals/{agent-weights.json, neurologist-signals.json (79 days), meal-annotations.json, seizure-risk.json}<br><br>
-    Generated 2026-06-09 · every number on this page traces to one of these files
+    Generated 2026-06-09 · every number on this page traces to one of these files<br><br>
+    Built by <a href="https://www.linkedin.com/in/loganmatson" target="_blank" style="color:var(--teal);">Logan Matson</a> · <a href="https://www.linkedin.com/in/loganmatson" target="_blank" style="color:var(--text-dim);">linkedin.com/in/loganmatson</a>
   </div>
 </footer>
 
@@ -596,6 +637,15 @@ ok = write_pipeline(<span class="g">"gordon_ramsay"</span>, data)<br>
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); obs.unobserve(e.target); } });
   }, { threshold: 0.06 });
   document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+  const bar = document.getElementById('progress');
+  const onScroll = () => {
+    const h = document.documentElement;
+    const scrolled = h.scrollTop / (h.scrollHeight - h.clientHeight);
+    bar.style.width = (scrolled * 100).toFixed(1) + '%';
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
 </script>
 </body>
 </html>
