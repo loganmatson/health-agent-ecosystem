@@ -3,7 +3,9 @@
 > A production multi-agent system that plans my training, meals, and seizure-risk forecast every week — nine Claude Code agents coordinated through shared state, a two-tier memory architecture, and a three-tier autonomy framework. Built end-to-end by Logan Matson.
 
 **See it live:**
-[Interactive showcase →](https://loganmatson.github.io/health-ecosystem-index/) · [Nine-agent deep-dive →](https://loganmatson.github.io/health-ecosystem-showcase/)
+[**Nine-agent deep-dive →**](https://loganmatson.github.io/health-agent-ecosystem/health-ecosystem-showcase.html) · [Interactive showcase →](https://loganmatson.github.io/health-ecosystem-index/)
+
+> The deep-dive page is the system's own overview — verbatim live state from `pipeline-state.json`, the `/optimize-week` walkthrough, the two-tier memory model, the silent-fallback incident report, and the three-tier autonomy framework. Every number on the page traces back to a real file in this repo.
 
 ---
 
@@ -208,8 +210,8 @@ Each agent is a Claude Code skill — a structured prompt file defining the agen
 
 ## Live Showcases
 
+- **[Nine-agent deep-dive →](https://loganmatson.github.io/health-agent-ecosystem/health-ecosystem-showcase.html)** — verbatim live state, the `/optimize-week` walkthrough, the memory incident, and the governance model. Served straight from this repo ([`health-ecosystem-showcase.html`](health-ecosystem-showcase.html)).
 - **[Interactive showcase →](https://loganmatson.github.io/health-ecosystem-index/)** — the full system, visualized
-- **[Nine-agent deep-dive →](https://loganmatson.github.io/health-ecosystem-showcase/)** — verbatim live state, the pipeline walkthrough, the memory incident, and the governance model
 
 ---
 
